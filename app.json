@@ -1,23 +1,32 @@
 {
   "expo": {
-    "name": "spotify-clone",
-    "slug": "spotify-clone",
-    "version": "1.0.0",
-    "orientation": "portrait",
-    "icon": "./assets/icon.png",
-    "userInterfaceStyle": "light",
-    "ios": {
-      "supportsTablet": true
-    },
     "android": {
       "adaptiveIcon": {
-        "backgroundColor": "#E6F4FE",
-        "foregroundImage": "./assets/android-icon-foreground.png",
+        "backgroundColor": "#121212",
         "backgroundImage": "./assets/android-icon-background.png",
+        "foregroundImage": "./assets/android-icon-foreground.png",
         "monochromeImage": "./assets/android-icon-monochrome.png"
       },
       "predictiveBackGestureEnabled": false
     },
+    "icon": "./assets/icon.png",
+    "ios": {
+      "supportsTablet": true
+    },
+    "name": "Spotify Clone",
+    "orientation": "portrait",
+    "plugins": [
+      "expo-status-bar",
+      "expo-router",
+      "expo-audio",
+      "expo-image",
+      "expo-asset",
+      "expo-font"
+    ],
+    "scheme": "spotify-clone",
+    "slug": "spotify-clone",
+    "userInterfaceStyle": "dark",
+    "version": "1.0.0",
     "web": {
       "favicon": "./assets/favicon.png"
     }
