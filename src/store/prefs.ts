@@ -11,6 +11,8 @@ interface PrefsState {
   plan: Plan;
   /** Listening-day streak freezes remaining (the mercy valve, shown in Stats). */
   streakFreezes: number;
+  /** Days a freeze was auto-applied to, so a gap day is only charged once. */
+  frozenDays: string[];
   sessionsCount: number;
   notifAsked: boolean;
   crossfade: number; // seconds 0..6 — fade-out/fade-in on track transitions
@@ -19,7 +21,7 @@ interface PrefsState {
   notifReleases: boolean;
   completeOnboarding: (artistIds: string[], genreIds: string[]) => void;
   setPlan: (plan: Plan) => void;
-  useFreeze: () => void;
+  useFreeze: (day: string) => void;
   grantFreeze: () => void;
   bumpSession: () => void;
   setNotifAsked: () => void;
@@ -38,6 +40,7 @@ export const usePrefsStore = create<PrefsState>()(
       tasteGenreIds: [],
       plan: 'free',
       streakFreezes: 2,
+      frozenDays: [],
       sessionsCount: 0,
       notifAsked: false,
       crossfade: 0,
@@ -46,7 +49,12 @@ export const usePrefsStore = create<PrefsState>()(
       notifReleases: true,
       completeOnboarding: (artistIds, genreIds) => set({ onboarded: true, tasteArtistIds: artistIds, tasteGenreIds: genreIds }),
       setPlan: (plan) => set({ plan }),
-      useFreeze: () => set((s) => ({ streakFreezes: Math.max(0, s.streakFreezes - 1) })),
+      useFreeze: (day) =>
+        set((s) =>
+          s.frozenDays.includes(day)
+            ? s
+            : { streakFreezes: Math.max(0, s.streakFreezes - 1), frozenDays: [...s.frozenDays, day] },
+        ),
       grantFreeze: () => set((s) => ({ streakFreezes: Math.min(2, s.streakFreezes + 1) })),
       bumpSession: () => set((s) => ({ sessionsCount: s.sessionsCount + 1 })),
       setNotifAsked: () => set({ notifAsked: true }),
@@ -61,6 +69,7 @@ export const usePrefsStore = create<PrefsState>()(
           tasteGenreIds: [],
           plan: 'free',
           streakFreezes: 2,
+          frozenDays: [],
           sessionsCount: 0,
           notifAsked: false,
           crossfade: 0,

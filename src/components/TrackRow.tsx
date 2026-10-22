@@ -4,6 +4,7 @@ import { Image } from 'expo-image';
 import { MoreHorizontal } from 'lucide-react-native';
 
 import { art, coverOfTrack, getArtist, type Track } from '../data/catalog';
+import { useLibraryStore } from '../store/library';
 import { usePlayerStore } from '../store/player';
 import { theme } from '../theme';
 import { Equalizer } from './Equalizer';
@@ -29,6 +30,7 @@ export const TrackRow = memo(function TrackRow({
   showArtwork = true,
   showLike = true,
   showIndex = false,
+  removablePlaylistId,
 }: {
   track: Track;
   index?: number;
@@ -37,7 +39,10 @@ export const TrackRow = memo(function TrackRow({
   showArtwork?: boolean;
   showLike?: boolean;
   showIndex?: boolean;
+  /** When set, the menu gains "Remove from this playlist". */
+  removablePlaylistId?: string;
 }) {
+  const removeFromPlaylist = useLibraryStore((s) => s.removeFromPlaylist);
   const isCurrent = usePlayerStore((s) => s.queue[s.index] === track.id);
   const isPlaying = usePlayerStore((s) => s.isPlaying);
   const playContext = usePlayerStore((s) => s.playContext);
@@ -97,7 +102,14 @@ export const TrackRow = memo(function TrackRow({
           <MoreHorizontal size={20} color={theme.colors.textSecondary} />
         </Pressable>
       </Pressable>
-      <TrackMenu track={track} visible={menuOpen} onClose={() => setMenuOpen(false)} />
+      <TrackMenu
+        track={track}
+        visible={menuOpen}
+        onClose={() => setMenuOpen(false)}
+        onRemoveFromPlaylist={
+          removablePlaylistId ? () => removeFromPlaylist(removablePlaylistId, track.id) : undefined
+        }
+      />
     </>
   );
 });

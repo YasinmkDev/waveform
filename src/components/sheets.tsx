@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { Modal, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
 import { Image } from 'expo-image';
 import { router } from 'expo-router';
-import { Check, Disc3, Heart, ListMusic, ListPlus, Play, Plus, Share2, User } from 'lucide-react-native';
+import { Check, Disc3, Heart, ListMusic, ListPlus, Play, Plus, Share2, User, X } from 'lucide-react-native';
 import Animated, { FadeIn, SlideInDown } from 'react-native-reanimated';
 
 import { art, coverOfTrack, getAlbum, getArtist, type Track } from '../data/catalog';
@@ -129,10 +129,12 @@ export function TrackMenu({
   track,
   visible,
   onClose,
+  onRemoveFromPlaylist,
 }: {
   track: Track | null;
   visible: boolean;
   onClose: () => void;
+  onRemoveFromPlaylist?: () => void;
 }) {
   const liked = useLibraryStore((s) => (track ? s.likedTrackIds.includes(track.id) : false));
   const toggleLike = useLibraryStore((s) => s.toggleLike);
@@ -209,6 +211,16 @@ export function TrackMenu({
             close();
           }}
         />
+        {onRemoveFromPlaylist ? (
+          <SheetRow
+            icon={<X size={22} color={theme.colors.danger} />}
+            label="Remove from this playlist"
+            onPress={() => {
+              onRemoveFromPlaylist();
+              close();
+            }}
+          />
+        ) : null}
       </SheetShell>
       <PlaylistPicker track={track} visible={pickerOpen} onClose={close} />
     </>

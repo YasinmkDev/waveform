@@ -12,11 +12,13 @@ export interface PlayEvent {
   seconds: number;
   /** Reached 30s or finished — counts as a real play. */
   counted: boolean;
+  /** The context the track was played from (playlist/album title) — feeds the resume grid. */
+  ctxLabel?: string;
 }
 
 interface HistoryState {
   events: PlayEvent[];
-  recordPlay: (trackId: string, seconds: number) => void;
+  recordPlay: (trackId: string, seconds: number, ctxLabel?: string) => void;
   reset: () => void;
 }
 
@@ -38,11 +40,11 @@ export const useHistoryStore = create<HistoryState>()(
   persist(
     (set) => ({
       events: [],
-      recordPlay: (trackId, seconds) =>
+      recordPlay: (trackId, seconds, ctxLabel) =>
         set((s) => ({
           events: [
             ...s.events.slice(-(MAX_EVENTS - 1)),
-            { trackId, day: dayKey(), at: Date.now(), seconds: Math.round(seconds), counted: seconds >= 30 },
+            { trackId, day: dayKey(), at: Date.now(), seconds: Math.round(seconds), counted: seconds >= 30, ctxLabel },
           ],
         })),
       reset: () => set({ events: [] }),

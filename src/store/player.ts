@@ -43,6 +43,8 @@ let maxPosition = 0;
 let finishHandled = false;
 let startedTrackId: string | null = null;
 let recentErrors: number[] = [];
+/** Context label of the track currently loaded — history events carry it. */
+let activeCtxLabel = '';
 
 function shuffled<T>(arr: T[]): T[] {
   const a = [...arr];
@@ -53,18 +55,23 @@ function shuffled<T>(arr: T[]): T[] {
   return a;
 }
 
-function flushHistory() {
+function flushHistory(ctxLabel: string) {
   if (startedTrackId && maxPosition >= 1) {
-    useHistoryStore.getState().recordPlay(startedTrackId, maxPosition);
+    useHistoryStore.getState().recordPlay(startedTrackId, maxPosition, ctxLabel || undefined);
   }
   maxPosition = 0;
 }
 
-function startTrack(set: (p: Partial<PlayerState>) => void, get: () => PlayerState, autoplay = true) {
+function startTrack(
+  set: (p: Partial<PlayerState>) => void,
+  get: () => PlayerState,
+  autoplay = true,
+  prevCtxLabel = activeCtxLabel,
+) {
   const { queue, index } = get();
   const track = getTrack(queue[index]);
   if (!track) return;
-  flushHistory();
+  flushHistory(prevCtxLabel);
   startedTrackId = track.id;
   finishHandled = false;
   loadTrack(track.audioUrl, autoplay, 0);
@@ -100,8 +107,10 @@ export const usePlayerStore = create<PlayerState>()(
           queue = [startId, ...rest];
           index = 0;
         }
+        const prevCtx = activeCtxLabel;
+        activeCtxLabel = label;
         set({ queue, baseQueue: [...trackIds], index, contextLabel: label });
-        startTrack(set, get, true);
+        startTrack(set, get, true, prevCtx);
         set({ isPlaying: true });
       },
 
@@ -120,6 +129,7 @@ export const usePlayerStore = create<PlayerState>()(
         }
         if (engineLoadedUrl() !== track.audioUrl) {
           // Cold start after an app restart: reload where we left off.
+          activeCtxLabel = s.contextLabel;
           startedTrackId = track.id;
           finishHandled = false;
           loadTrack(track.audioUrl, true, s.position > 1 ? s.position : 0);
@@ -143,7 +153,7 @@ export const usePlayerStore = create<PlayerState>()(
             startTrack(set, get, true);
             set({ isPlaying: true });
           } else {
-            flushHistory();
+            flushHistory(activeCtxLabel);
             startedTrackId = null;
             enginePause();
             set({ isPlaying: false, ended: true, position: s.duration });
@@ -279,7 +289,7 @@ export const usePlayerStore = create<PlayerState>()(
           finishHandled = true;
           const cur = get();
           if (cur.repeat === 'one') {
-            flushHistory();
+            flushHistory(activeCtxLabel);
             startedTrackId = cur.queue[cur.index] ?? null;
             maxPosition = 0;
             finishHandled = false;
