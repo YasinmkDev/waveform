@@ -9,6 +9,7 @@ import Animated, { FadeIn } from 'react-native-reanimated';
 import { art, totalDuration, tracksOf } from '../data/catalog';
 import { useLibraryStore } from '../store/library';
 import { usePlayerStore } from '../store/player';
+import { usePrefsStore } from '../store/prefs';
 import { theme } from '../theme';
 import { PlayDisc } from './PlayDisc';
 import { formatDuration, TrackRow } from './TrackRow';
@@ -137,7 +138,14 @@ export function CollectionView({
             {downloadKey ? (
               <Pressable
                 style={styles.iconBtn}
-                onPress={() => toggleDownload(downloadKey)}
+                onPress={() => {
+                  // Downloads are a Premium feature (PLAN §6.12) — the gate is real.
+                  if (usePrefsStore.getState().plan !== 'premium' && !downloaded) {
+                    router.push('/premium');
+                    return;
+                  }
+                  toggleDownload(downloadKey);
+                }}
                 accessibilityLabel={downloaded ? 'Remove download' : 'Download'}
               >
                 {downloaded ? (

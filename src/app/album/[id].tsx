@@ -1,7 +1,6 @@
-import { StyleSheet, Text, View } from 'react-native';
+import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { router, useLocalSearchParams } from 'expo-router';
 import { Image } from 'expo-image';
-import { Pressable } from 'react-native';
 
 import { CollectionView } from '../../components/CollectionView';
 import { EmptyState } from '../../components/ui';

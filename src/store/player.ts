@@ -35,6 +35,7 @@ interface PlayerState {
   moveQueueItem: (from: number, to: number) => void;
   clearQueue: () => void;
   replayQueue: () => void;
+  resetPlayback: () => void;
   _onStatus: (status: AudioStatus) => void;
 }
 
@@ -76,7 +77,9 @@ function startTrack(
   finishHandled = false;
   loadTrack(track.audioUrl, autoplay, 0);
   if (autoplay) {
-    const fade = Math.min(usePrefsStore.getState().crossfade, 2);
+    const prefs = usePrefsStore.getState();
+    const cap = prefs.plan === 'premium' ? 6 : 2;
+    const fade = Math.min(prefs.crossfade, cap);
     if (fade > 0) fadeIn(fade * 1000);
   }
   set({ position: 0, duration: track.duration, ended: false, isBuffering: autoplay });
@@ -260,6 +263,28 @@ export const usePlayerStore = create<PlayerState>()(
         set({ index: 0, ended: false });
         startTrack(set, get, true);
         set({ isPlaying: true });
+      },
+
+      resetPlayback: () => {
+        try {
+          enginePause();
+        } catch {
+          /* engine not started yet */
+        }
+        startedTrackId = null;
+        activeCtxLabel = '';
+        maxPosition = 0;
+        set({
+          queue: [],
+          baseQueue: [],
+          index: 0,
+          contextLabel: '',
+          isPlaying: false,
+          isBuffering: false,
+          position: 0,
+          duration: 0,
+          ended: false,
+        });
       },
 
       _onStatus: (status) => {

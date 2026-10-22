@@ -47,6 +47,7 @@ export default function HomeScreen() {
   const tasteArtistIds = usePrefsStore((s) => s.tasteArtistIds);
   const tasteGenreIds = usePrefsStore((s) => s.tasteGenreIds);
   const plan = usePrefsStore((s) => s.plan);
+  const notifReleases = usePrefsStore((s) => s.notifReleases);
   const hasTrack = usePlayerStore((s) => s.queue.length > 0);
   const playContext = usePlayerStore((s) => s.playContext);
   const [adDismissed, setAdDismissed] = useState(false);
@@ -246,7 +247,7 @@ export default function HomeScreen() {
           />
         ) : null}
 
-        {showAlbums ? (
+        {showAlbums && notifReleases ? (
           <Shelf
             title="New releases for you"
             data={newReleases.slice(0, 4)}
