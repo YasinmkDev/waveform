@@ -26,6 +26,8 @@ export interface Album {
   title: string;
   artistId: string;
   cover: string;
+  /** Dark flat tint derived from the cover — Now Playing background wash. */
+  tint: string;
   year: number;
   trackIds: string[];
 }
@@ -97,14 +99,14 @@ export const TRACKS: Track[] = [
 ];
 
 export const ALBUMS: Album[] = [
-  { id: 'neon-meridian', title: 'Neon Meridian', artistId: 'nova-reina', cover: 'album-neon-meridian', year: 2025, trackIds: ['t-meridian', 't-ultraviolet'] },
-  { id: 'cartographer', title: 'Cartographer', artistId: 'atlas-grey', cover: 'album-cartographer', year: 2024, trackIds: ['t-northbound', 't-long-survey'] },
-  { id: 'slow-tides', title: 'Slow Tides', artistId: 'mira-sol', cover: 'album-slow-tides', year: 2025, trackIds: ['t-paper-moon', 't-salt-cedar'] },
-  { id: 'festival-lights', title: 'Festival Lights', artistId: 'paper-lanterns', cover: 'album-festival-lights', year: 2023, trackIds: ['t-lantern-parade', 't-fireworks'] },
-  { id: 'terminal-velocity', title: 'Terminal Velocity', artistId: 'vector-club', cover: 'album-terminal-velocity', year: 2025, trackIds: ['t-afterburn', 't-night-terminal'] },
-  { id: 'velvet-static', title: 'Velvet Static', artistId: 'sable-june', cover: 'album-velvet-static', year: 2024, trackIds: ['t-copper-sky', 't-slow-parade'] },
-  { id: 'deep-focus', title: 'Deep Focus', artistId: 'orion-fields', cover: 'album-deep-focus', year: 2025, trackIds: ['t-field-notes', 't-quiet-machinery'] },
-  { id: 'insert-coin', title: 'Insert Coin', artistId: 'midnight-arcade', cover: 'album-insert-coin', year: 2024, trackIds: ['t-high-score', 't-final-level'] },
+  { id: 'neon-meridian', title: 'Neon Meridian', artistId: 'nova-reina', cover: 'album-neon-meridian', tint: '#10131F', year: 2025, trackIds: ['t-meridian', 't-ultraviolet'] },
+  { id: 'cartographer', title: 'Cartographer', artistId: 'atlas-grey', cover: 'album-cartographer', tint: '#0E1A1A', year: 2024, trackIds: ['t-northbound', 't-long-survey'] },
+  { id: 'slow-tides', title: 'Slow Tides', artistId: 'mira-sol', cover: 'album-slow-tides', tint: '#123B4C', year: 2025, trackIds: ['t-paper-moon', 't-salt-cedar'] },
+  { id: 'festival-lights', title: 'Festival Lights', artistId: 'paper-lanterns', cover: 'album-festival-lights', tint: '#1D1033', year: 2023, trackIds: ['t-lantern-parade', 't-fireworks'] },
+  { id: 'terminal-velocity', title: 'Terminal Velocity', artistId: 'vector-club', cover: 'album-terminal-velocity', tint: '#1A1214', year: 2025, trackIds: ['t-afterburn', 't-night-terminal'] },
+  { id: 'velvet-static', title: 'Velvet Static', artistId: 'sable-june', cover: 'album-velvet-static', tint: '#221C26', year: 2024, trackIds: ['t-copper-sky', 't-slow-parade'] },
+  { id: 'deep-focus', title: 'Deep Focus', artistId: 'orion-fields', cover: 'album-deep-focus', tint: '#0B2027', year: 2025, trackIds: ['t-field-notes', 't-quiet-machinery'] },
+  { id: 'insert-coin', title: 'Insert Coin', artistId: 'midnight-arcade', cover: 'album-insert-coin', tint: '#160F29', year: 2024, trackIds: ['t-high-score', 't-final-level'] },
 ];
 
 export const PLAYLISTS: Playlist[] = [
@@ -120,6 +122,8 @@ export const PLAYLISTS: Playlist[] = [
 ];
 
 export const LIKED_ID = 'liked';
+
+export { art } from './artwork';
 
 /* ------------------------------- lookups -------------------------------- */
 

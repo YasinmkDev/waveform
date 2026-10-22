@@ -1,10 +1,14 @@
 import { StyleSheet, View } from 'react-native';
 import { Tabs } from 'expo-router';
-import { Home, Library, Search, User } from 'lucide-react-native';
+import { Home, Library, Search } from 'lucide-react-native';
 
 import { MiniPlayer } from '../../components/MiniPlayer';
 import { theme } from '../../theme';
 
+/**
+ * Three tabs — Home / Search / Your Library (the dissection's ruling:
+ * profile lives behind the header avatar, not in the tab bar).
+ */
 export default function TabsLayout() {
   return (
     <View style={styles.container}>
@@ -14,11 +18,12 @@ export default function TabsLayout() {
           tabBarStyle: {
             backgroundColor: theme.colors.canvas,
             borderTopColor: theme.colors.border,
+            borderTopWidth: 1,
             height: theme.layout.tabBarHeight,
           },
           tabBarActiveTintColor: theme.colors.text,
           tabBarInactiveTintColor: theme.colors.textTertiary,
-          tabBarLabelStyle: { fontSize: theme.fontSize.caption },
+          tabBarLabelStyle: { fontSize: 11, fontWeight: '600' },
         }}
       >
         <Tabs.Screen
@@ -40,13 +45,6 @@ export default function TabsLayout() {
           options={{
             title: 'Your Library',
             tabBarIcon: ({ color, size }) => <Library size={size} color={color} />,
-          }}
-        />
-        <Tabs.Screen
-          name="profile"
-          options={{
-            title: 'Profile',
-            tabBarIcon: ({ color, size }) => <User size={size} color={color} />,
           }}
         />
       </Tabs>

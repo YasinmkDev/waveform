@@ -1,46 +1,85 @@
-import { useState } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { router } from 'expo-router';
-import { Music2, Pause, Play } from 'lucide-react-native';
+import { Image } from 'expo-image';
+import { Pause, Play, SkipForward } from 'lucide-react-native';
+import { Gesture, GestureDetector } from 'react-native-gesture-handler';
+import Animated, { FadeIn } from 'react-native-reanimated';
+import { runOnJS } from 'react-native-worklets';
 
+import { art, coverOfTrack, getArtist, getTrack } from '../data/catalog';
+import { usePlayerStore } from '../store/player';
 import { theme } from '../theme';
+import { LikeButton } from './LikeButton';
+
+/** Subscribes to position alone so the 2×/s updates re-render only this hairline. */
+function ProgressLine() {
+  const position = usePlayerStore((s) => s.position);
+  const duration = usePlayerStore((s) => s.duration);
+  const pct = duration > 0 ? Math.min(100, (position / duration) * 100) : 0;
+  return (
+    <View style={styles.progressTrack}>
+      <View style={[styles.progressFill, { width: `${pct}%` }]} />
+    </View>
+  );
+}
 
 /**
- * MiniPlayer — the persistent bar that sits above the tab bar and mirrors
- * the currently playing track. Placeholder: tapping it opens the full
- * player route; the play/pause button toggles local state only until the
- * expo-audio playback service lands.
+ * MiniPlayer — floats above the tab bar whenever a track is loaded.
+ * Tap = expand to Now Playing. Swipe left = next, swipe right = previous.
+ * Exists only when something is playing (cold state lives on Home).
  */
 export function MiniPlayer() {
-  const [playing, setPlaying] = useState(false);
+  const trackId = usePlayerStore((s) => s.queue[s.index]);
+  const isPlaying = usePlayerStore((s) => s.isPlaying);
+  const isBuffering = usePlayerStore((s) => s.isBuffering);
+  const togglePlay = usePlayerStore((s) => s.togglePlay);
+  const next = usePlayerStore((s) => s.next);
+  const prev = usePlayerStore((s) => s.prev);
+
+  const track = trackId ? getTrack(trackId) : undefined;
+
+  const swipe = Gesture.Pan()
+    .activeOffsetX([-14, 14])
+    .onEnd((e) => {
+      if (e.translationX <= -56) runOnJS(next)(true);
+      else if (e.translationX >= 56) runOnJS(prev)();
+    });
+
+  if (!track) return null;
+  const artist = getArtist(track.artistId);
 
   return (
-    <View style={styles.container}>
-      <Pressable style={styles.main} onPress={() => router.push('/player')}>
-        <View style={styles.artwork}>
-          <Music2 size={20} color={theme.colors.textSecondary} />
-        </View>
-        <View style={styles.meta}>
-          <Text style={styles.title} numberOfLines={1}>
-            No track playing
-          </Text>
-          <Text style={styles.artist} numberOfLines={1}>
-            Pick something from Home to start listening
-          </Text>
-        </View>
-      </Pressable>
-      <Pressable
-        style={styles.control}
-        onPress={() => setPlaying((value) => !value)}
-        accessibilityLabel={playing ? 'Pause' : 'Play'}
-      >
-        {playing ? (
-          <Pause size={24} color={theme.colors.text} fill={theme.colors.text} />
-        ) : (
-          <Play size={24} color={theme.colors.text} fill={theme.colors.text} />
-        )}
-      </Pressable>
-    </View>
+    <GestureDetector gesture={swipe}>
+      <Animated.View entering={FadeIn.duration(220)} style={styles.container}>
+        <ProgressLine />
+        <Pressable style={styles.main} onPress={() => router.push('/player')}>
+          <Animated.View key={track.id} entering={FadeIn.duration(250)}>
+            <Image source={art(coverOfTrack(track))} style={styles.artwork} contentFit="cover" />
+          </Animated.View>
+          <View style={styles.meta}>
+            <Text style={styles.title} numberOfLines={1}>
+              {track.title}
+            </Text>
+            <Text style={styles.artist} numberOfLines={1}>
+              {artist?.name}
+            </Text>
+          </View>
+        </Pressable>
+        <LikeButton trackId={track.id} size={22} />
+        <Pressable style={styles.control} onPress={togglePlay} accessibilityLabel={isPlaying ? 'Pause' : 'Play'}>
+          {isBuffering ? (
+            <View style={styles.bufferDot} />
+          ) : isPlaying ? (
+            <Pause size={26} color={theme.colors.text} fill={theme.colors.text} />
+          ) : (
+            <Play size={26} color={theme.colors.text} fill={theme.colors.text} />
+          )}
+        </Pressable>
+        <Pressable style={styles.control} onPress={() => next(true)} accessibilityLabel="Next track">
+          <SkipForward size={24} color={theme.colors.text} fill={theme.colors.text} />
+        </Pressable>
+      </Animated.View>
+    </GestureDetector>
   );
 }
 
@@ -49,46 +88,34 @@ const styles = StyleSheet.create({
     position: 'absolute',
     left: theme.spacing.sm,
     right: theme.spacing.sm,
-    // Floats directly above the tab bar.
     bottom: theme.layout.tabBarHeight + theme.spacing.sm,
-    height: theme.layout.miniPlayerHeight,
+    height: theme.layout.miniPlayerHeight + 8,
     flexDirection: 'row',
     alignItems: 'center',
     backgroundColor: theme.colors.surfaceRaised,
     borderRadius: theme.radii.md,
     paddingHorizontal: theme.spacing.sm,
+    overflow: 'hidden',
   },
-  main: {
-    flex: 1,
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: theme.spacing.sm,
+  progressTrack: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    height: 2,
+    backgroundColor: 'rgba(255,255,255,0.14)',
   },
-  artwork: {
-    width: theme.layout.artworkSm,
-    height: theme.layout.artworkSm,
-    borderRadius: theme.radii.sm,
-    backgroundColor: theme.colors.surfaceAlt,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  meta: {
-    flex: 1,
-    gap: 2,
-  },
-  title: {
-    color: theme.colors.text,
-    fontSize: theme.fontSize.small,
-    fontWeight: theme.fontWeight.semibold,
-  },
-  artist: {
-    color: theme.colors.textSecondary,
-    fontSize: theme.fontSize.caption,
-  },
-  control: {
-    width: 44,
-    height: 44,
-    alignItems: 'center',
-    justifyContent: 'center',
+  progressFill: { height: 2, backgroundColor: theme.colors.text },
+  main: { flex: 1, flexDirection: 'row', alignItems: 'center', gap: theme.spacing.sm, minWidth: 0 },
+  artwork: { width: theme.layout.artworkSm, height: theme.layout.artworkSm, borderRadius: theme.radii.sm },
+  meta: { flex: 1, minWidth: 0, gap: 1 },
+  title: { color: theme.colors.text, fontSize: theme.fontSize.small, fontWeight: theme.fontWeight.semibold },
+  artist: { color: theme.colors.textSecondary, fontSize: theme.fontSize.caption },
+  control: { width: 44, height: 44, alignItems: 'center', justifyContent: 'center' },
+  bufferDot: {
+    width: 10,
+    height: 10,
+    borderRadius: 5,
+    backgroundColor: theme.colors.textSecondary,
   },
 });
