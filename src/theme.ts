@@ -46,6 +46,23 @@ export const theme = {
     artworkSm: 48,
     artworkMd: 64,
     artworkLg: 152,
+    artworkHero: 232,
+    shelfCard: 152,
+    playDisc: 56,
+    playDiscLg: 64,
+  },
+  /** Motion tokens (Design Mastery Playbook, Part 6). Springs are Reanimated
+   *  values; durations in ms. Bounce only where the gesture carried momentum. */
+  motion: {
+    pressScale: 0.97,
+    durationPress: 120,
+    durationFast: 180,
+    durationBase: 280,
+    durationSheet: 350,
+    stagger: 40,
+    springUI: { stiffness: 300, damping: 30, mass: 1 },
+    springSheet: { stiffness: 260, damping: 27, mass: 1 },
+    springPlayful: { stiffness: 320, damping: 20, mass: 0.9 },
   },
   /** Flat genre tile colors for the Search browse grid. */
   genrePalette: [

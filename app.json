@@ -13,7 +13,7 @@
     "ios": {
       "supportsTablet": true
     },
-    "name": "Spotify Clone",
+    "name": "Waveform",
     "orientation": "portrait",
     "plugins": [
       "expo-status-bar",
@@ -23,8 +23,8 @@
       "expo-asset",
       "expo-font"
     ],
-    "scheme": "spotify-clone",
-    "slug": "spotify-clone",
+    "scheme": "waveform",
+    "slug": "waveform",
     "userInterfaceStyle": "dark",
     "version": "1.0.0",
     "web": {
