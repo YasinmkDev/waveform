@@ -3,7 +3,7 @@ import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { Image } from 'expo-image';
 import { router } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { Bell, Settings } from 'lucide-react-native';
+import { Bell, Settings, X } from 'lucide-react-native';
 import Animated, { FadeInDown } from 'react-native-reanimated';
 
 import { ArtistCard, ResumeTile, SquareCard } from '../../components/Cards';
@@ -215,7 +215,7 @@ export default function HomeScreen() {
               <Text style={styles.adSub}>Go Premium for the full stats card and zero house ads.</Text>
             </View>
             <Pressable onPress={() => setAdDismissed(true)} hitSlop={10} accessibilityLabel="Dismiss ad">
-              <Text style={styles.adClose}>✕</Text>
+              <X size={16} color={theme.colors.textSecondary} />
             </Pressable>
           </Pressable>
         ) : null}
@@ -368,5 +368,4 @@ const styles = StyleSheet.create({
   adTag: { color: theme.colors.textTertiary, fontSize: 10, fontWeight: theme.fontWeight.bold, letterSpacing: 1 },
   adTitle: { color: theme.colors.text, fontSize: theme.fontSize.body, fontWeight: theme.fontWeight.bold, marginTop: 4 },
   adSub: { color: theme.colors.textSecondary, fontSize: theme.fontSize.caption, marginTop: 2, lineHeight: 16 },
-  adClose: { color: theme.colors.textSecondary, fontSize: 14, padding: 2 },
 });

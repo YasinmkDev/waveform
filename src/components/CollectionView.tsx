@@ -130,8 +130,8 @@ export function CollectionView({
               >
                 <Heart
                   size={26}
-                  color={saved ? theme.colors.accent : theme.colors.text}
-                  fill={saved ? theme.colors.accent : 'transparent'}
+                  color={theme.colors.text}
+                  fill={saved ? theme.colors.text : 'transparent'}
                 />
               </Pressable>
             ) : null}

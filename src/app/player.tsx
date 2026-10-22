@@ -119,7 +119,7 @@ export default function PlayerScreen() {
           <ChevronDown size={28} color={theme.colors.text} />
         </Pressable>
         <View style={styles.headerMeta}>
-          <Text style={styles.headerOverline}>PLAYING FROM {contextLabel ? 'PLAYLIST' : 'YOUR MUSIC'}</Text>
+          <Text style={styles.headerOverline}>PLAYING FROM</Text>
           <Text style={styles.headerTitle} numberOfLines={1}>
             {contextLabel || album?.title}
           </Text>

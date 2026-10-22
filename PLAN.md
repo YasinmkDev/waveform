@@ -377,3 +377,15 @@ README with screenshots + architecture notes, tunnel demo for the user's phone, 
 
 ---
 *Plan v1 — 2026-10-22. Changelog: v1 initial plan.*
+
+## Build record (2026-10-22) — all 6 phases shipped
+
+Built as planned; gates green at every phase (tsc, ESLint, expo-doctor 21/21) and pushed to github.com/YasinmkDev/waveform in meaningful per-phase commits. **Design Mastery Part 8 audit: PASS** — token sheet, one-accent discipline (hearts unified to white fill after audit caught a green save-heart), shape code, no dead controls verified screen by screen, loop features shipped (Weekly Mix from real local data, streak + visible freezes, resume grid, Month-in-Music card), motion tokens applied with the frequency rule, thank-you test passed (paywall has no scarcity theater; stats are real).
+
+**Recorded deviations from v1 (deliberate, with reasons):**
+1. **Catalog = 16 verified tracks** (8 artists × 2), not 60: only 16 stable, license-clear audio files could be verified live; playlists/mixes reuse tracks across contexts, as real editorial playlists do. Expanding the catalog is a content task, not an architecture change.
+2. **Home chips** are All / Mixes / Albums / Artists (real in-place shelf filters) instead of Spotify's All / Music / Podcasts — the catalog has no podcasts, and a chip that filters to nothing would be a dead control.
+3. **Notifications are in-app surfaces** (bell dot, streak-saver card, contextual ask on Profile), not OS pushes: expo-notifications is unreliable inside Expo Go on SDK 57, and the loops work through the in-app triggers. Scheduling can be added behind the same prefs toggles in a dev build.
+4. **Queue reorder is tap-to-place** (long-press lifts a row, tap drops it) instead of drag: no extra dependency, fully functional in Expo Go.
+5. **Crossfade** is implemented as engine fade-out/fade-in around transitions (single player), capped at 2s on Free and 6s on Premium — a real, audible effect, labeled honestly in Settings copy.
+6. **Data Saver** setting was dropped rather than shipped as a fake toggle; Settings contains only controls with real effects.
