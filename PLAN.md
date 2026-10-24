@@ -523,7 +523,7 @@ Scope file committed in the same push (UI_POLISH_SCOPE.md).
   white fill + black text, artist ring white, check badge white);
   settings + queue header titles to the section token (create-playlist title
   was already section — now 22).
-- `TBD` Empty states + tab bar — EmptyState gains an optional icon prop
+- `38995be` Empty states + tab bar — EmptyState gains an optional icon prop
   (large, textTertiary, above the title); used on search-empty (Search),
   library-empty (Library) and collection-empty (Music2); tab bar inactive tint
   textTertiary→textSecondary for readability.
