@@ -389,3 +389,96 @@ Built as planned; gates green at every phase (tsc, ESLint, expo-doctor 21/21) an
 4. **Queue reorder is tap-to-place** (long-press lifts a row, tap drops it) instead of drag: no extra dependency, fully functional in Expo Go.
 5. **Crossfade** is implemented as engine fade-out/fade-in around transitions (single player), capped at 2s on Free and 6s on Premium — a real, audible effect, labeled honestly in Settings copy.
 6. **Data Saver** setting was dropped rather than shipped as a fake toggle; Settings contains only controls with real effects.
+
+## Build record (2026-10-24) — motion everywhere + missing features (MOTION_SCOPE.md)
+
+Scope (approved 2026-10-24): press-scale + stagger + layout motion on every card,
+row, chip, sheet, tab and screen; plus the genuinely missing features, all really
+wired. Commits on master, all pushed to github.com/YasinmkDev/waveform:
+
+- `6982bea` motion primitives — `PressableScale`, `StaggerItem` (FadeInDown,
+  40 ms/item, first 8 only), pulsing `SkeletonBox` (opacity 0.35↔0.7, 1.4 s),
+  slide-up toast (SlideInUp + FadeIn in, SlideOutDown out), module-level
+  shared-value helpers (`springTo`, `popTo`, `popFrom`, `pulseOpacity`,
+  `artDragUpdate/Reset`, `sheetSlideIn/Out/Snap`) — no inline shared-value
+  writes in handlers anywhere.
+- `4f738d6` Home / Search / Library — press scale on cards, tiles, rows,
+  chips (0.96 + layout), header icons and clear buttons; stagger on shelves
+  (FlashList), genre grid, result groups and library list/grid; layout
+  transitions on filter/sort/grid switches, pin reorder, playlist delete and
+  ad dismiss (FadeOut exit, layout-animated siblings slide up); shelves
+  keyed by filter so a filter switch re-enters.
+- `a2b8626` Player / MiniPlayer / Queue — directional track-change slides
+  (new `lastNavDirection` in the player store: next from right, prev from
+  left, fresh contexts fade); artwork drag feedback (translateX, 0.94 scale,
+  ±4° tilt, spring back); album-tint crossfade via a keyed FadeIn overlay
+  (flat color, no gradient); PlayDisc toggle pulse (1.12 spring); scrubber
+  thumb grows to 1.4× while scrubbing; shuffle/repeat dots ZoomIn-pop;
+  MiniPlayer SlideInUp spring entrance + 0.92→1 artwork pop; queue rows
+  layout-animated (reorder/remove slide, delete fades).
+- `3b87610` Detail screens / sheets / tabs / onboarding / premium / settings /
+  profile — spring sheets with REAL exits (shared-value driven: a Modal
+  unmounts its native subtree instantly, so `exiting` props can never play
+  there — the sheet slides down + backdrop fades, then onClose fires); the
+  Library menu is now the same spring sheet (plain Modal fade deleted);
+  tab icon pop on focus + label fade; onboarding bubble press + progress-dot
+  layout/fade; premium plan-card scale + table stagger; settings section
+  stagger + press rows; profile stat stagger + press rows.
+- `ab252af` Features (all real) — sleep timer (footer Moon → 15/30/60/Off
+  sheet, `sleepUntil` in the player store, engine stops at time across track
+  changes, live countdown chip); `playNext(trackId)` in TrackMenu (inserts
+  directly after the current track, toast names the track); real share
+  (player + TrackMenu copy a real Waveform link via expo-clipboard — the old
+  fake "Link copied" toast is gone; Profile Month-in-Music uses the RN Share
+  API with real stats text); genre Play-all disc in the genre hero;
+  Recently played shelf on Home from the real play log; collection sort
+  toggle (Recents / A–Z, real reorder, row taps play in shown order).
+- `8b173d8` P2 kept: MiniPlayer drag-up expands to Now Playing — implemented
+  inside the existing pan's dead zone with a dominance check, so horizontal
+  swipes and taps behave exactly as before.
+- `cc64a78` chore: `addToQueue` removed after `playNext` superseded it (zero
+  remaining callers — verified by grep, not assumed).
+
+**Scope corrections found while building (not re-added, verified in code):**
+- Artist PlayDisc was already present (artist screen already had PlayDisc +
+  shuffle before this build) — the scope's "today only Follow exists" premise
+  was stale; no duplicate control was added.
+- `expo-clipboard` was not in package.json despite the scope note — installed
+  via `npx expo install expo-clipboard` (Expo Go-bundled module, no dev build
+  needed); it landed in the 4f738d6 commit tree.
+
+**Design Mastery Part 8 audit (2026-10-24): PASS, with two honest notes.**
+- Token sheet: all motion numbers live in `theme.motion` / `motion.ts` helpers;
+  screens invent no numbers. One accent: green appears only on PlayDiscs,
+  live state (playing row, dots, active chips) and Premium marks — verified by
+  reading every screen; hearts fill WHITE (LikeButton + save hearts).
+  No gradients, glow or glassmorphism anywhere in `src/` (grep-verified).
+- Shape code intact (square = content, circle = artist); no dead controls —
+  every new control is wired (sleep timer stops the engine, Play next inserts,
+  share copies/shares real text, sort reorders, Play-all plays).
+- Loop features: Weekly Mix, streak + freezes, resume grid, Month-in-Music
+  all still driven by the real local play log; the new Recently played shelf
+  is the same data, not a second invention.
+- Motion discipline: springs only on gesture-reactive surfaces (press, drag,
+  sheet); list entrances are fades/slides, never springs on progress bars;
+  stagger capped at 8 items / 320 ms; the only loops are the skeleton pulse
+  and the pre-existing Equalizer, both gated by Reduced Motion.
+- Reduced Motion: every new primitive renders plain (press scale off, stagger
+  off, slides become crossfades, sheet snaps) — checked in `PressableScale`,
+  `StaggerItem`, `SkeletonBox`, `MiniPlayer`, `PlayerScreen`, `PlayDisc`,
+  `TabIcon`, `SheetShell`.
+- Frequency rule: the most-tapped surfaces (rows, cards, chips) get only the
+  0.97 press spring — no flourish on 100×/day taps. The delight budget stays
+  where it was: onboarding and the premium success state.
+- Thank-you test: the paywall is unchanged (honest demo, no scarcity); the
+  sleep timer and share do exactly what their labels promise.
+- Note 1: sheet exits are timed (250 ms slide + 260 ms close delay), not
+  interruptible mid-exit — acceptable for a bottom sheet, but a rapid
+  open→close→open can queue one extra close cycle (guarded by `exitingRef`).
+- Note 2: NOT verified on a physical device in this build — no tunnel or dev
+  server was started (per task: delivery is the parent's job). Static gates
+  are green (see below); the parent should smoke-test on Expo Go: sleep
+  timer end-to-end, drag-up expand vs horizontal swipe, sheet exit timing.
+
+**Gates at the end of this build:** `npx tsc --noEmit` clean (exit 0) ·
+`npx eslint .` clean (exit 0) · `npx expo-doctor` 21/21.
