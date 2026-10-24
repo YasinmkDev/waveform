@@ -1,9 +1,10 @@
+import { useEffect, useRef } from 'react';
 import { ActivityIndicator, Pressable, StyleSheet } from 'react-native';
 import { Pause, Play } from 'lucide-react-native';
-import Animated from 'react-native-reanimated';
+import Animated, { useAnimatedStyle, useReducedMotion, useSharedValue } from 'react-native-reanimated';
 
 import { theme } from '../theme';
-import { usePressScale } from './motion';
+import { popTo, usePressScale } from './motion';
 
 /**
  * THE Play disc — the single loudest interactive element in the product.
@@ -24,11 +25,22 @@ export function PlayDisc({
   light?: boolean;
 }) {
   const press = usePressScale(0.94);
+  const reduced = useReducedMotion();
+  const pulse = useSharedValue(1);
+  const prevPlaying = useRef(isPlaying);
+  // Toggle pulse: a 1.12 spring pop whenever play/pause flips (not on mount).
+  useEffect(() => {
+    if (prevPlaying.current !== isPlaying) {
+      prevPlaying.current = isPlaying;
+      if (!reduced) popTo(pulse, 1.12);
+    }
+  }, [isPlaying, reduced, pulse]);
+  const pulseStyle = useAnimatedStyle(() => ({ transform: [{ scale: pulse.value }] }));
   const bg = light ? theme.colors.text : theme.colors.accent;
   const fg = theme.colors.onAccent;
   const glyph = Math.round(size * 0.46);
   return (
-    <Animated.View style={press.style}>
+    <Animated.View style={[press.style, reduced ? undefined : pulseStyle]}>
       <Pressable
         onPress={onPress}
         onPressIn={press.onPressIn}

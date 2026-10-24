@@ -37,6 +37,8 @@ export function PressableScale({
   accessibilityRole,
   accessibilityState,
   hitSlop,
+  onLongPress,
+  delayLongPress,
 }: {
   onPress: () => void;
   style?: StyleProp<ViewStyle>;
@@ -48,6 +50,8 @@ export function PressableScale({
   accessibilityRole?: 'button';
   accessibilityState?: { selected?: boolean };
   hitSlop?: number;
+  onLongPress?: () => void;
+  delayLongPress?: number;
 }) {
   const reduced = useReducedMotion();
   const press = usePressScale(scale);
@@ -55,6 +59,8 @@ export function PressableScale({
     <Animated.View style={[reduced ? undefined : press.style, outerStyle]} layout={layout ? LinearTransition.springify() : undefined}>
       <Pressable
         onPress={onPress}
+        onLongPress={onLongPress}
+        delayLongPress={delayLongPress}
         onPressIn={reduced ? undefined : press.onPressIn}
         onPressOut={reduced ? undefined : press.onPressOut}
         accessibilityLabel={accessibilityLabel}

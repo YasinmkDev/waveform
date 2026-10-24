@@ -5,7 +5,7 @@ import { router } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { ChevronDown, GripVertical, X } from 'lucide-react-native';
 
-import { EmptyState } from '../components/ui';
+import { EmptyState, PressableScale, StaggerItem } from '../components/ui';
 import { art, coverOfTrack, getArtist, getTrack } from '../data/catalog';
 import { useHistoryStore } from '../store/history';
 import { usePlayerStore } from '../store/player';
@@ -47,9 +47,9 @@ export default function QueueScreen() {
   return (
     <SafeAreaView style={styles.safe}>
       <View style={styles.header}>
-        <Pressable style={styles.iconBtn} onPress={() => router.back()} accessibilityLabel="Close queue">
+        <PressableScale style={styles.iconBtn} onPress={() => router.back()} accessibilityLabel="Close queue">
           <ChevronDown size={28} color={theme.colors.text} />
-        </Pressable>
+        </PressableScale>
         <Text style={styles.title}>Queue</Text>
         <View style={styles.iconBtn} />
       </View>
@@ -80,7 +80,7 @@ export default function QueueScreen() {
             <View style={styles.sectionRow}>
               <Text style={styles.section}>Next in queue</Text>
               {upcoming.length > 1 ? (
-                <Pressable
+                <PressableScale
                   onPress={() => {
                     clearQueue();
                     setPicked(null);
@@ -88,7 +88,7 @@ export default function QueueScreen() {
                   }}
                 >
                   <Text style={styles.clear}>Clear</Text>
-                </Pressable>
+                </PressableScale>
               ) : null}
             </View>
             {picked != null ? (
@@ -105,44 +105,14 @@ export default function QueueScreen() {
                 if (!t) return null;
                 const isPicked = picked === absolute;
                 return (
-                  <Pressable
-                    key={`${id}-${absolute}`}
-                    onPress={() => onRowTap(absolute)}
-                    onLongPress={() => setPicked(isPicked ? null : absolute)}
-                    delayLongPress={300}
-                    style={[styles.row, isPicked && styles.rowPicked]}
-                  >
-                    <GripVertical size={18} color={theme.colors.textTertiary} />
-                    <Image source={art(coverOfTrack(t))} style={styles.art} contentFit="cover" />
-                    <View style={{ flex: 1, minWidth: 0 }}>
-                      <Text style={styles.rowTitle} numberOfLines={1}>
-                        {t.title}
-                      </Text>
-                      <Text style={styles.rowArtist} numberOfLines={1}>
-                        {getArtist(t.artistId)?.name}
-                      </Text>
-                    </View>
-                    <Pressable
-                      onPress={() => removeFromQueue(absolute)}
-                      hitSlop={8}
-                      style={styles.iconBtn}
-                      accessibilityLabel={`Remove ${t.title} from queue`}
+                  <StaggerItem key={`${id}-${absolute}`} index={i} layout>
+                    <PressableScale
+                      style={[styles.row, isPicked && styles.rowPicked]}
+                      onPress={() => onRowTap(absolute)}
+                      onLongPress={() => setPicked(isPicked ? null : absolute)}
+                      delayLongPress={300}
                     >
-                      <X size={18} color={theme.colors.textSecondary} />
-                    </Pressable>
-                  </Pressable>
-                );
-              })
-            )}
-
-            {recentIds.length ? (
-              <>
-                <Text style={[styles.section, { marginTop: theme.spacing.xxl }]}>Recently played</Text>
-                {recentIds.map((id) => {
-                  const t = getTrack(id);
-                  if (!t) return null;
-                  return (
-                    <Pressable key={id} style={styles.row} onPress={() => playContext([id], 0, 'Recently played')}>
+                      <GripVertical size={18} color={theme.colors.textTertiary} />
                       <Image source={art(coverOfTrack(t))} style={styles.art} contentFit="cover" />
                       <View style={{ flex: 1, minWidth: 0 }}>
                         <Text style={styles.rowTitle} numberOfLines={1}>
@@ -152,7 +122,40 @@ export default function QueueScreen() {
                           {getArtist(t.artistId)?.name}
                         </Text>
                       </View>
-                    </Pressable>
+                      <Pressable
+                        onPress={() => removeFromQueue(absolute)}
+                        hitSlop={8}
+                        style={styles.iconBtn}
+                        accessibilityLabel={`Remove ${t.title} from queue`}
+                      >
+                        <X size={18} color={theme.colors.textSecondary} />
+                      </Pressable>
+                    </PressableScale>
+                  </StaggerItem>
+                );
+              })
+            )}
+
+            {recentIds.length ? (
+              <>
+                <Text style={[styles.section, { marginTop: theme.spacing.xxl }]}>Recently played</Text>
+                {recentIds.map((id, i) => {
+                  const t = getTrack(id);
+                  if (!t) return null;
+                  return (
+                    <StaggerItem key={id} index={i} layout>
+                      <PressableScale style={styles.row} onPress={() => playContext([id], 0, 'Recently played')}>
+                        <Image source={art(coverOfTrack(t))} style={styles.art} contentFit="cover" />
+                        <View style={{ flex: 1, minWidth: 0 }}>
+                          <Text style={styles.rowTitle} numberOfLines={1}>
+                            {t.title}
+                          </Text>
+                          <Text style={styles.rowArtist} numberOfLines={1}>
+                            {getArtist(t.artistId)?.name}
+                          </Text>
+                        </View>
+                      </PressableScale>
+                    </StaggerItem>
                   );
                 })}
               </>

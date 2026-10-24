@@ -16,6 +16,8 @@ interface PlayerState {
   baseQueue: string[];
   index: number;
   contextLabel: string;
+  /** Direction of the last track change — drives Now Playing slide direction. */
+  lastNavDirection: 'next' | 'prev' | null;
   shuffle: boolean;
   repeat: RepeatMode;
   isPlaying: boolean;
@@ -92,6 +94,7 @@ export const usePlayerStore = create<PlayerState>()(
       baseQueue: [],
       index: 0,
       contextLabel: '',
+      lastNavDirection: null,
       shuffle: false,
       repeat: 'off',
       isPlaying: false,
@@ -112,7 +115,7 @@ export const usePlayerStore = create<PlayerState>()(
         }
         const prevCtx = activeCtxLabel;
         activeCtxLabel = label;
-        set({ queue, baseQueue: [...trackIds], index, contextLabel: label });
+        set({ queue, baseQueue: [...trackIds], index, contextLabel: label, lastNavDirection: null });
         startTrack(set, get, true, prevCtx);
         set({ isPlaying: true });
       },
@@ -148,11 +151,11 @@ export const usePlayerStore = create<PlayerState>()(
         const fade = manual ? 0.15 : 0;
         const advance = () => {
           if (s.index < s.queue.length - 1) {
-            set({ index: s.index + 1 });
+            set({ index: s.index + 1, lastNavDirection: 'next' });
             startTrack(set, get, true);
             set({ isPlaying: true });
           } else if (s.repeat === 'all') {
-            set({ index: 0 });
+            set({ index: 0, lastNavDirection: 'next' });
             startTrack(set, get, true);
             set({ isPlaying: true });
           } else {
@@ -180,7 +183,7 @@ export const usePlayerStore = create<PlayerState>()(
           return;
         }
         if (s.index > 0) {
-          set({ index: s.index - 1 });
+          set({ index: s.index - 1, lastNavDirection: 'prev' });
           startTrack(set, get, true);
           set({ isPlaying: true });
         } else {
@@ -279,6 +282,7 @@ export const usePlayerStore = create<PlayerState>()(
           baseQueue: [],
           index: 0,
           contextLabel: '',
+          lastNavDirection: null,
           isPlaying: false,
           isBuffering: false,
           position: 0,

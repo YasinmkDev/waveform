@@ -24,12 +24,37 @@ export function fadeTo(sv: SharedValue<number>, to: number, duration = theme.mot
   sv.value = withTiming(to, { duration });
 }
 
-/** Pop: brief overshoot then settle — tab icons, PlayDisc toggle pulse. */
-export function popTo(sv: SharedValue<number>) {
+/** Pop: brief overshoot then settle — tab icons (1.18), PlayDisc toggle (1.12). */
+export function popTo(sv: SharedValue<number>, peak = 1.18) {
   sv.value = withSequence(
-    withSpring(1.18, theme.motion.springPlayful),
+    withSpring(peak, theme.motion.springPlayful),
     withSpring(1, theme.motion.springUI),
   );
+}
+
+/** Artwork drag feedback: follow X, shrink to 0.94, tilt up to ±4°. */
+export function artDragUpdate(
+  tx: SharedValue<number>,
+  sc: SharedValue<number>,
+  rot: SharedValue<number>,
+  dx: number,
+) {
+  tx.value = dx;
+  sc.value = 0.94;
+  rot.value = Math.max(-4, Math.min(4, dx / 25));
+}
+
+/** Artwork drag release: spring back to centered, full size, upright. */
+export function artDragReset(tx: SharedValue<number>, sc: SharedValue<number>, rot: SharedValue<number>) {
+  tx.value = withSpring(0, theme.motion.springUI);
+  sc.value = withSpring(1, theme.motion.springUI);
+  rot.value = withSpring(0, theme.motion.springUI);
+}
+
+/** Pop-from: snap to `from`, then spring to 1 — track-change artwork pop. */
+export function popFrom(sv: SharedValue<number>, from = 0.92) {
+  sv.value = from;
+  sv.value = withSpring(1, theme.motion.springPlayful);
 }
 
 /** Endless skeleton pulse: opacity 0.35 ↔ 0.7 on a 1.4 s loop. Never a loop on taps. */

@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { Image } from 'expo-image';
 import { router } from 'expo-router';
@@ -16,13 +16,23 @@ import {
   SkipForward,
 } from 'lucide-react-native';
 import { Gesture, GestureDetector } from 'react-native-gesture-handler';
-import Animated, { FadeIn } from 'react-native-reanimated';
+import Animated, {
+  FadeIn,
+  SlideInLeft,
+  SlideInRight,
+  useAnimatedStyle,
+  useReducedMotion,
+  useSharedValue,
+  ZoomIn,
+} from 'react-native-reanimated';
 import { runOnJS } from 'react-native-worklets';
 
 import { LikeButton } from '../components/LikeButton';
+import { artDragReset, artDragUpdate, springTo } from '../components/motion';
 import { PlayDisc } from '../components/PlayDisc';
 import { formatDuration } from '../components/TrackRow';
 import { PlaylistPicker, TrackMenu } from '../components/sheets';
+import { PressableScale } from '../components/ui';
 import { art, coverOfTrack, getAlbum, getArtist, getPlaylist, getTrack } from '../data/catalog';
 import { usePlayerStore } from '../store/player';
 import { useUiStore } from '../store/ui';
@@ -35,6 +45,14 @@ function Scrubber() {
   const seek = usePlayerStore((s) => s.seek);
   const [width, setWidth] = useState(0);
   const [scrub, setScrub] = useState<number | null>(null);
+  const reduced = useReducedMotion();
+  const thumbScale = useSharedValue(1);
+  const scrubbing = scrub != null;
+  // Thumb grows to 1.4× while scrubbing, springs back on release.
+  useEffect(() => {
+    if (!reduced) springTo(thumbScale, scrubbing ? 1.4 : 1, true);
+  }, [scrubbing, reduced, thumbScale]);
+  const thumbStyle = useAnimatedStyle(() => ({ transform: [{ scale: thumbScale.value }] }));
 
   const shown = scrub ?? position;
   const pct = duration > 0 ? Math.max(0, Math.min(1, shown / duration)) : 0;
@@ -56,7 +74,9 @@ function Scrubber() {
           <View style={styles.seekTrack}>
             <View style={[styles.seekFill, { width: `${pct * 100}%` }]} />
           </View>
-          <View style={[styles.seekThumb, { left: `${pct * 100}%` }, scrub == null && styles.seekThumbIdle]} />
+          <Animated.View
+            style={[styles.seekThumb, { left: `${pct * 100}%` }, scrub == null && styles.seekThumbIdle, thumbStyle]}
+          />
         </View>
       </GestureDetector>
       <View style={styles.seekTimes}>
@@ -70,6 +90,7 @@ function Scrubber() {
 export default function PlayerScreen() {
   const trackId = usePlayerStore((s) => s.queue[s.index]);
   const contextLabel = usePlayerStore((s) => s.contextLabel);
+  const lastNavDirection = usePlayerStore((s) => s.lastNavDirection);
   const isPlaying = usePlayerStore((s) => s.isPlaying);
   const isBuffering = usePlayerStore((s) => s.isBuffering);
   const shuffle = usePlayerStore((s) => s.shuffle);
@@ -84,12 +105,23 @@ export default function PlayerScreen() {
   const showToast = useUiStore((s) => s.showToast);
   const [menuOpen, setMenuOpen] = useState(false);
   const [pickerOpen, setPickerOpen] = useState(false);
+  const reduced = useReducedMotion();
+  const dragX = useSharedValue(0);
+  const dragScale = useSharedValue(1);
+  const dragRot = useSharedValue(0);
+  const dragStyle = useAnimatedStyle(() => ({
+    transform: [{ translateX: dragX.value }, { scale: dragScale.value }, { rotate: `${dragRot.value}deg` }],
+  }));
 
   const track = trackId ? getTrack(trackId) : undefined;
 
   const swipeArt = Gesture.Pan()
     .activeOffsetX([-24, 24])
+    .onUpdate((e) => {
+      artDragUpdate(dragX, dragScale, dragRot, e.translationX);
+    })
     .onEnd((e) => {
+      artDragReset(dragX, dragScale, dragRot);
       if (e.translationX <= -70) runOnJS(next)(true);
       else if (e.translationX >= 70) runOnJS(prev)();
     });
@@ -111,27 +143,40 @@ export default function PlayerScreen() {
   const artist = getArtist(track.artistId);
   const album = getAlbum(track.albumId);
   const tint = album?.tint ?? theme.colors.canvas;
+  // Directional entrance: next slides from the right, prev from the left;
+  // fresh contexts fade in. Reduced Motion always crossfades.
+  const artEntering = reduced
+    ? FadeIn.duration(320)
+    : lastNavDirection === 'next'
+      ? SlideInRight.duration(280)
+      : lastNavDirection === 'prev'
+        ? SlideInLeft.duration(280)
+        : FadeIn.duration(320);
 
   return (
-    <SafeAreaView style={[styles.safe, { backgroundColor: tint }]}>
+    <SafeAreaView style={styles.safe}>
+      {/* Tint crossfade: keyed overlay fades in on every track change. */}
+      <Animated.View key={`tint-${track.id}`} entering={FadeIn.duration(400)} style={[StyleSheet.absoluteFill, { backgroundColor: tint }]} />
       <View style={styles.header}>
-        <Pressable style={styles.iconBtn} onPress={() => router.back()} accessibilityLabel="Close player">
+        <PressableScale style={styles.iconBtn} onPress={() => router.back()} accessibilityLabel="Close player">
           <ChevronDown size={28} color={theme.colors.text} />
-        </Pressable>
+        </PressableScale>
         <View style={styles.headerMeta}>
           <Text style={styles.headerOverline}>PLAYING FROM</Text>
           <Text style={styles.headerTitle} numberOfLines={1}>
             {contextLabel || album?.title}
           </Text>
         </View>
-        <Pressable style={styles.iconBtn} onPress={() => setMenuOpen(true)} accessibilityLabel="More options">
+        <PressableScale style={styles.iconBtn} onPress={() => setMenuOpen(true)} accessibilityLabel="More options">
           <MoreHorizontal size={24} color={theme.colors.text} />
-        </Pressable>
+        </PressableScale>
       </View>
 
       <GestureDetector gesture={swipeArt}>
-        <Animated.View key={track.id} entering={FadeIn.duration(320)} style={styles.artWrap}>
-          <Image source={art(coverOfTrack(track))} style={styles.artwork} contentFit="cover" />
+        <Animated.View key={track.id} entering={artEntering} style={styles.artWrap}>
+          <Animated.View style={dragStyle}>
+            <Image source={art(coverOfTrack(track))} style={styles.artwork} contentFit="cover" />
+          </Animated.View>
         </Animated.View>
       </GestureDetector>
 
@@ -145,37 +190,41 @@ export default function PlayerScreen() {
           </Text>
         </View>
         <LikeButton trackId={track.id} size={26} />
-        <Pressable style={styles.iconBtn} onPress={() => setPickerOpen(true)} accessibilityLabel="Add to playlist">
+        <PressableScale style={styles.iconBtn} scale={0.9} onPress={() => setPickerOpen(true)} accessibilityLabel="Add to playlist">
           <Plus size={26} color={theme.colors.text} />
-        </Pressable>
+        </PressableScale>
       </View>
 
       <Scrubber />
 
       <View style={styles.transport}>
-        <Pressable style={styles.iconBtn} onPress={toggleShuffle} accessibilityLabel="Shuffle">
+        <PressableScale style={styles.iconBtn} onPress={toggleShuffle} accessibilityLabel="Shuffle">
           <Shuffle size={22} color={shuffle ? theme.colors.accent : theme.colors.textSecondary} />
-          {shuffle ? <View style={styles.dot} /> : null}
-        </Pressable>
-        <Pressable style={styles.iconBtn} onPress={prev} accessibilityLabel="Previous track">
+          {shuffle ? (
+            <Animated.View entering={reduced ? undefined : ZoomIn.springify().damping(16)} style={styles.dot} />
+          ) : null}
+        </PressableScale>
+        <PressableScale style={styles.iconBtn} onPress={prev} accessibilityLabel="Previous track">
           <SkipBack size={34} color={theme.colors.text} fill={theme.colors.text} />
-        </Pressable>
+        </PressableScale>
         <PlayDisc light size={theme.layout.playDiscLg} isPlaying={isPlaying} isBuffering={isBuffering} onPress={togglePlay} />
-        <Pressable style={styles.iconBtn} onPress={() => next(true)} accessibilityLabel="Next track">
+        <PressableScale style={styles.iconBtn} onPress={() => next(true)} accessibilityLabel="Next track">
           <SkipForward size={34} color={theme.colors.text} fill={theme.colors.text} />
-        </Pressable>
-        <Pressable style={styles.iconBtn} onPress={cycleRepeat} accessibilityLabel="Repeat">
+        </PressableScale>
+        <PressableScale style={styles.iconBtn} onPress={cycleRepeat} accessibilityLabel="Repeat">
           {repeat === 'one' ? (
             <Repeat1 size={22} color={theme.colors.accent} />
           ) : (
             <Repeat size={22} color={repeat === 'all' ? theme.colors.accent : theme.colors.textSecondary} />
           )}
-          {repeat !== 'off' ? <View style={styles.dot} /> : null}
-        </Pressable>
+          {repeat !== 'off' ? (
+            <Animated.View entering={reduced ? undefined : ZoomIn.springify().damping(16)} style={styles.dot} />
+          ) : null}
+        </PressableScale>
       </View>
 
       {ended ? (
-        <Pressable
+        <PressableScale
           style={styles.keepListening}
           onPress={() => {
             const weekly = getPlaylist('weekly-mix');
@@ -183,21 +232,21 @@ export default function PlayerScreen() {
           }}
         >
           <Text style={styles.keepListeningText}>Queue finished — keep listening with Your Weekly Mix</Text>
-        </Pressable>
+        </PressableScale>
       ) : null}
 
       <View style={styles.footer}>
-        <Pressable
+        <PressableScale
           style={styles.iconBtn}
           onPress={() => showToast('Link copied to clipboard')}
           accessibilityLabel="Share"
         >
           <Share2 size={20} color={theme.colors.textSecondary} />
-        </Pressable>
-        <Pressable style={styles.queueBtn} onPress={() => router.push('/queue')} accessibilityLabel="Open queue">
+        </PressableScale>
+        <PressableScale style={styles.queueBtn} onPress={() => router.push('/queue')} accessibilityLabel="Open queue">
           <ListMusic size={20} color={theme.colors.text} />
           <Text style={styles.queueText}>Queue</Text>
-        </Pressable>
+        </PressableScale>
       </View>
 
       <TrackMenu track={track} visible={menuOpen} onClose={() => setMenuOpen(false)} />

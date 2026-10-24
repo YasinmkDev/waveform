@@ -1,15 +1,23 @@
-import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { useEffect } from 'react';
+import { StyleSheet, Text, View } from 'react-native';
 import { router } from 'expo-router';
 import { Image } from 'expo-image';
 import { Pause, Play, SkipForward } from 'lucide-react-native';
 import { Gesture, GestureDetector } from 'react-native-gesture-handler';
-import Animated, { FadeIn } from 'react-native-reanimated';
+import Animated, {
+  SlideInUp,
+  useAnimatedStyle,
+  useReducedMotion,
+  useSharedValue,
+} from 'react-native-reanimated';
 import { runOnJS } from 'react-native-worklets';
 
 import { art, coverOfTrack, getArtist, getTrack } from '../data/catalog';
 import { usePlayerStore } from '../store/player';
 import { theme } from '../theme';
 import { LikeButton } from './LikeButton';
+import { popFrom } from './motion';
+import { PressableScale } from './ui';
 
 /** Subscribes to position alone so the 2×/s updates re-render only this hairline. */
 function ProgressLine() {
@@ -35,8 +43,16 @@ export function MiniPlayer() {
   const togglePlay = usePlayerStore((s) => s.togglePlay);
   const next = usePlayerStore((s) => s.next);
   const prev = usePlayerStore((s) => s.prev);
+  const reduced = useReducedMotion();
+  const artScale = useSharedValue(1);
+  const artStyle = useAnimatedStyle(() => ({ transform: [{ scale: artScale.value }] }));
 
   const track = trackId ? getTrack(trackId) : undefined;
+
+  // Track-change artwork pop: 0.92 → 1 on a playful spring.
+  useEffect(() => {
+    if (track && !reduced) popFrom(artScale, 0.92);
+  }, [track?.id, reduced, artScale]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const swipe = Gesture.Pan()
     .activeOffsetX([-14, 14])
@@ -50,10 +66,10 @@ export function MiniPlayer() {
 
   return (
     <GestureDetector gesture={swipe}>
-      <Animated.View entering={FadeIn.duration(220)} style={styles.container}>
+      <Animated.View entering={reduced ? undefined : SlideInUp.springify().damping(26)} style={styles.container}>
         <ProgressLine />
-        <Pressable style={styles.main} onPress={() => router.push('/player')}>
-          <Animated.View key={track.id} entering={FadeIn.duration(250)}>
+        <PressableScale outerStyle={{ flex: 1 }} style={styles.main} onPress={() => router.push('/player')}>
+          <Animated.View key={track.id} style={reduced ? undefined : artStyle}>
             <Image source={art(coverOfTrack(track))} style={styles.artwork} contentFit="cover" />
           </Animated.View>
           <View style={styles.meta}>
@@ -64,9 +80,9 @@ export function MiniPlayer() {
               {artist?.name}
             </Text>
           </View>
-        </Pressable>
+        </PressableScale>
         <LikeButton trackId={track.id} size={22} />
-        <Pressable style={styles.control} onPress={togglePlay} accessibilityLabel={isPlaying ? 'Pause' : 'Play'}>
+        <PressableScale style={styles.control} scale={0.9} onPress={togglePlay} accessibilityLabel={isPlaying ? 'Pause' : 'Play'}>
           {isBuffering ? (
             <View style={styles.bufferDot} />
           ) : isPlaying ? (
@@ -74,10 +90,10 @@ export function MiniPlayer() {
           ) : (
             <Play size={26} color={theme.colors.text} fill={theme.colors.text} />
           )}
-        </Pressable>
-        <Pressable style={styles.control} onPress={() => next(true)} accessibilityLabel="Next track">
+        </PressableScale>
+        <PressableScale style={styles.control} scale={0.9} onPress={() => next(true)} accessibilityLabel="Next track">
           <SkipForward size={24} color={theme.colors.text} fill={theme.colors.text} />
-        </Pressable>
+        </PressableScale>
       </Animated.View>
     </GestureDetector>
   );
