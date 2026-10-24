@@ -6,7 +6,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { ArrowDownAZ, LayoutGrid, List, MoreHorizontal, Pin, Plus, Search, X } from 'lucide-react-native';
 
 import { ArtistCard, SquareCard } from '../../components/Cards';
-import { Chip, EmptyState } from '../../components/ui';
+import { Chip, EmptyState, PressableScale, StaggerItem } from '../../components/ui';
 import { ALBUMS, PLAYLISTS, art, getArtist } from '../../data/catalog';
 import { useHistoryStore } from '../../store/history';
 import { useLibraryStore, type LibraryKey } from '../../store/library';
@@ -144,12 +144,12 @@ export default function LibraryScreen() {
       <View style={styles.header}>
         <Text style={styles.title}>Your Library</Text>
         <View style={styles.headerIcons}>
-          <Pressable style={styles.iconBtn} onPress={() => setSearchOpen((v) => !v)} accessibilityLabel="Search in library">
+          <PressableScale style={styles.iconBtn} onPress={() => setSearchOpen((v) => !v)} accessibilityLabel="Search in library">
             <Search size={23} color={theme.colors.text} />
-          </Pressable>
-          <Pressable style={styles.iconBtn} onPress={() => router.push('/create-playlist')} accessibilityLabel="Create playlist">
+          </PressableScale>
+          <PressableScale style={styles.iconBtn} onPress={() => router.push('/create-playlist')} accessibilityLabel="Create playlist">
             <Plus size={26} color={theme.colors.text} />
-          </Pressable>
+          </PressableScale>
         </View>
       </View>
 
@@ -164,9 +164,9 @@ export default function LibraryScreen() {
             autoFocus
           />
           {query ? (
-            <Pressable onPress={() => setQuery('')} hitSlop={8} accessibilityLabel="Clear">
+            <PressableScale onPress={() => setQuery('')} scale={0.9} hitSlop={8} accessibilityLabel="Clear">
               <X size={18} color={theme.colors.textSecondary} />
-            </Pressable>
+            </PressableScale>
           ) : null}
         </View>
       ) : null}
@@ -185,17 +185,17 @@ export default function LibraryScreen() {
       </View>
 
       <View style={styles.sortRow}>
-        <Pressable
+        <PressableScale
           style={styles.sortBtn}
           onPress={() => setSort((s) => (s === 'recents' ? 'az' : 'recents'))}
           accessibilityLabel="Change sort"
         >
           <ArrowDownAZ size={16} color={theme.colors.text} />
           <Text style={styles.sortText}>{sort === 'recents' ? 'Recents' : 'A–Z'}</Text>
-        </Pressable>
-        <Pressable style={styles.iconBtn} onPress={() => setGrid((v) => !v)} accessibilityLabel="Toggle grid view">
+        </PressableScale>
+        <PressableScale style={styles.iconBtn} onPress={() => setGrid((v) => !v)} accessibilityLabel="Toggle grid view">
           {grid ? <List size={20} color={theme.colors.text} /> : <LayoutGrid size={20} color={theme.colors.text} />}
-        </Pressable>
+        </PressableScale>
       </View>
 
       <ScrollView contentContainerStyle={{ paddingBottom: hasTrack ? 150 : 96 }}>
@@ -212,25 +212,26 @@ export default function LibraryScreen() {
           />
         ) : grid ? (
           <View style={styles.grid}>
-            {filtered.map((e) =>
-              e.circle ? (
-                <ArtistCard key={e.key} imageKey={e.coverKey ?? ''} name={e.title} size={150} onPress={() => router.push(e.route as never)} />
-              ) : (
-                <SquareCard
-                  key={e.key}
-                  coverKey={e.coverKey ?? 'playlist-top-hits'}
-                  title={e.title}
-                  caption={e.subtitle}
-                  size={150}
-                  onPress={() => router.push(e.route as never)}
-                />
-              ),
-            )}
+            {filtered.map((e, i) => (
+              <StaggerItem key={e.key} index={i}>
+                {e.circle ? (
+                  <ArtistCard imageKey={e.coverKey ?? ''} name={e.title} size={150} onPress={() => router.push(e.route as never)} />
+                ) : (
+                  <SquareCard
+                    coverKey={e.coverKey ?? 'playlist-top-hits'}
+                    title={e.title}
+                    caption={e.subtitle}
+                    size={150}
+                    onPress={() => router.push(e.route as never)}
+                  />
+                )}
+              </StaggerItem>
+            ))}
           </View>
         ) : (
-          filtered.map((e) => (
-            <View key={e.key} style={styles.row}>
-              <Pressable style={styles.rowMain} onPress={() => router.push(e.route as never)}>
+          filtered.map((e, i) => (
+            <StaggerItem key={e.key} index={i} layout style={styles.row}>
+              <PressableScale outerStyle={{ flex: 1 }} style={styles.rowMain} onPress={() => router.push(e.route as never)}>
                 <Image
                   source={art(e.coverKey ?? 'playlist-top-hits')}
                   style={[styles.rowArt, e.circle && { borderRadius: 24 }]}
@@ -245,11 +246,11 @@ export default function LibraryScreen() {
                     {e.subtitle}
                   </Text>
                 </View>
-              </Pressable>
-              <Pressable style={styles.iconBtn} onPress={() => setMenuKey(e.key)} accessibilityLabel={`Options for ${e.title}`}>
+              </PressableScale>
+              <PressableScale style={styles.iconBtn} scale={0.9} onPress={() => setMenuKey(e.key)} accessibilityLabel={`Options for ${e.title}`}>
                 <MoreHorizontal size={20} color={theme.colors.textSecondary} />
-              </Pressable>
-            </View>
+              </PressableScale>
+            </StaggerItem>
           ))
         )}
       </ScrollView>

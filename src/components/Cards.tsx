@@ -1,8 +1,9 @@
-import { Pressable, StyleSheet, Text } from 'react-native';
+import { StyleSheet, Text } from 'react-native';
 import { Image } from 'expo-image';
 
 import { art } from '../data/catalog';
 import { theme } from '../theme';
+import { PressableScale } from './ui';
 
 export function SquareCard({
   coverKey,
@@ -18,7 +19,7 @@ export function SquareCard({
   size?: number;
 }) {
   return (
-    <Pressable onPress={onPress} style={{ width: size }} accessibilityRole="button">
+    <PressableScale onPress={onPress} style={{ width: size }} accessibilityRole="button">
       <Image source={art(coverKey)} style={{ width: size, height: size, borderRadius: theme.radii.md }} contentFit="cover" transition={150} />
       <Text style={styles.cardTitle} numberOfLines={2}>
         {title}
@@ -28,7 +29,7 @@ export function SquareCard({
           {caption}
         </Text>
       ) : null}
-    </Pressable>
+    </PressableScale>
   );
 }
 
@@ -45,13 +46,13 @@ export function ArtistCard({
   size?: number;
 }) {
   return (
-    <Pressable onPress={onPress} style={{ width: size, alignItems: 'center' }} accessibilityRole="button">
+    <PressableScale onPress={onPress} style={{ width: size, alignItems: 'center' }} accessibilityRole="button">
       <Image source={art(imageKey)} style={{ width: size, height: size, borderRadius: size / 2 }} contentFit="cover" transition={150} />
       <Text style={[styles.cardTitle, { textAlign: 'center' }]} numberOfLines={1}>
         {name}
       </Text>
       <Text style={styles.cardCaption}>Artist</Text>
-    </Pressable>
+    </PressableScale>
   );
 }
 
@@ -65,16 +66,17 @@ export function ResumeTile({
   onPress: () => void;
 }) {
   return (
-    <Pressable
+    <PressableScale
       onPress={onPress}
-      style={({ pressed }) => [styles.tile, pressed && { backgroundColor: theme.colors.surfaceRaised }]}
+      outerStyle={styles.tileOuter}
+      style={styles.tileInner}
       accessibilityRole="button"
     >
       <Image source={art(coverKey)} style={styles.tileArt} contentFit="cover" transition={150} />
       <Text style={styles.tileTitle} numberOfLines={2}>
         {title}
       </Text>
-    </Pressable>
+    </PressableScale>
   );
 }
 
@@ -91,13 +93,17 @@ const styles = StyleSheet.create({
     marginTop: 2,
     lineHeight: 16,
   },
-  tile: {
+  tileOuter: {
     flex: 1,
-    flexDirection: 'row',
-    alignItems: 'center',
     backgroundColor: theme.colors.surfaceAlt,
     borderRadius: theme.radii.md,
     overflow: 'hidden',
+    minHeight: 56,
+  },
+  tileInner: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
     minHeight: 56,
   },
   tileArt: { width: 56, height: 56 },

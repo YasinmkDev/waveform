@@ -4,12 +4,12 @@ import { Image } from 'expo-image';
 import { router } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Bell, Settings, X } from 'lucide-react-native';
-import Animated, { FadeInDown } from 'react-native-reanimated';
+import Animated, { FadeInDown, FadeOut, LinearTransition } from 'react-native-reanimated';
 
 import { ArtistCard, ResumeTile, SquareCard } from '../../components/Cards';
 import { PlayDisc } from '../../components/PlayDisc';
 import { Shelf } from '../../components/Shelf';
-import { Chip } from '../../components/ui';
+import { Chip, PressableScale } from '../../components/ui';
 import {
   ALBUMS,
   ARTISTS,
@@ -82,20 +82,20 @@ export default function HomeScreen() {
         <View style={styles.header}>
           <Text style={styles.greeting}>{greeting()}</Text>
           <View style={styles.headerIcons}>
-            <Pressable
+            <PressableScale
               style={styles.iconBtn}
               onPress={() => router.push('/playlist/weekly-mix')}
               accessibilityLabel="Your Weekly Mix"
             >
               <Bell size={23} color={theme.colors.text} />
               {weeklyFresh ? <View style={styles.bellDot} /> : null}
-            </Pressable>
-            <Pressable style={styles.iconBtn} onPress={() => router.push('/settings')} accessibilityLabel="Settings">
+            </PressableScale>
+            <PressableScale style={styles.iconBtn} onPress={() => router.push('/settings')} accessibilityLabel="Settings">
               <Settings size={23} color={theme.colors.text} />
-            </Pressable>
-            <Pressable style={styles.avatar} onPress={() => router.push('/profile')} accessibilityLabel="Profile">
+            </PressableScale>
+            <PressableScale style={styles.avatar} onPress={() => router.push('/profile')} accessibilityLabel="Profile">
               <Text style={styles.avatarText}>G</Text>
-            </Pressable>
+            </PressableScale>
           </View>
         </View>
 
@@ -115,43 +115,47 @@ export default function HomeScreen() {
 
         {/* Weekly Mix hero — the algorithmic-intimacy surface */}
         {showMixes ? (
-          <Animated.View entering={FadeInDown.duration(380).springify()} style={styles.heroCard}>
-            <Image source={art(weekly.cover)} style={styles.heroArt} contentFit="cover" />
-            <View style={styles.heroMeta}>
-              <Text style={styles.kicker}>MADE FROM YOUR LIKES & PLAYS</Text>
-              <Text style={styles.heroTitle}>Your Weekly Mix</Text>
-              <Text style={styles.heroSub} numberOfLines={2}>
-                {weekly.trackIds.length} songs picked from what you actually listen to
-              </Text>
-            </View>
-            <PlayDisc
-              isPlaying={false}
-              size={52}
-              onPress={() => playContext(weekly.trackIds, 0, weekly.title)}
-            />
+          <Animated.View entering={FadeInDown.duration(380).springify()} layout={LinearTransition.springify()}>
+            <PressableScale style={styles.heroCard} onPress={() => playContext(weekly.trackIds, 0, weekly.title)}>
+              <Image source={art(weekly.cover)} style={styles.heroArt} contentFit="cover" />
+              <View style={styles.heroMeta}>
+                <Text style={styles.kicker}>MADE FROM YOUR LIKES & PLAYS</Text>
+                <Text style={styles.heroTitle}>Your Weekly Mix</Text>
+                <Text style={styles.heroSub} numberOfLines={2}>
+                  {weekly.trackIds.length} songs picked from what you actually listen to
+                </Text>
+              </View>
+              <PlayDisc
+                isPlaying={false}
+                size={52}
+                onPress={() => playContext(weekly.trackIds, 0, weekly.title)}
+              />
+            </PressableScale>
           </Animated.View>
         ) : null}
 
         {/* Streak saver — in-app trigger, supportive, never shaming */}
         {showStreakSaver ? (
-          <Pressable
-            style={styles.streakCard}
-            onPress={() => {
-              const weeklyIds = weekly.trackIds;
-              if (weeklyIds.length) playContext(weeklyIds, 0, weekly.title);
-            }}
-          >
-            <Text style={styles.streakText}>
-              Your {streak}-day listening streak is alive — one song keeps it going.
-            </Text>
-            <Text style={styles.streakCta}>Play</Text>
-          </Pressable>
+          <Animated.View layout={LinearTransition.springify()}>
+            <PressableScale
+              style={styles.streakCard}
+              onPress={() => {
+                const weeklyIds = weekly.trackIds;
+                if (weeklyIds.length) playContext(weeklyIds, 0, weekly.title);
+              }}
+            >
+              <Text style={styles.streakText}>
+                Your {streak}-day listening streak is alive — one song keeps it going.
+              </Text>
+              <Text style={styles.streakCta}>Play</Text>
+            </PressableScale>
+          </Animated.View>
         ) : null}
 
         {/* Resume grid / cold start */}
         {filter === 'all' ? (
           resume.length ? (
-            <View style={styles.resumeGrid}>
+            <Animated.View style={styles.resumeGrid} layout={LinearTransition.springify()}>
               {resume.map((ctx, i) => (
                 <Animated.View
                   key={ctx.label}
@@ -161,21 +165,24 @@ export default function HomeScreen() {
                   <ResumeTile coverKey={ctx.cover} title={ctx.label} onPress={() => playResume(ctx.label, ctx.trackIds)} />
                 </Animated.View>
               ))}
-            </View>
+            </Animated.View>
           ) : (
-            <Pressable
-              style={styles.coldCard}
-              onPress={() => playContext(generateTasteMix(taste), 0, 'Made For You')}
-            >
-              <Text style={styles.kicker}>YOUR TASTE, INSTANTLY</Text>
-              <Text style={styles.coldTitle}>A mix built from the artists you picked</Text>
-              <Text style={styles.heroSub}>Tap to play — it sharpens every time you listen.</Text>
-            </Pressable>
+            <Animated.View layout={LinearTransition.springify()}>
+              <PressableScale
+                style={styles.coldCard}
+                onPress={() => playContext(generateTasteMix(taste), 0, 'Made For You')}
+              >
+                <Text style={styles.kicker}>YOUR TASTE, INSTANTLY</Text>
+                <Text style={styles.coldTitle}>A mix built from the artists you picked</Text>
+                <Text style={styles.heroSub}>Tap to play — it sharpens every time you listen.</Text>
+              </PressableScale>
+            </Animated.View>
           )
         ) : null}
 
         {showMixes ? (
           <Shelf
+            key={`mixes-${filter}`}
             title="Made For You"
             data={mixes}
             keyExtractor={(p) => p.id}
@@ -193,6 +200,7 @@ export default function HomeScreen() {
 
         {showAlbums ? (
           <Shelf
+            key={`albums-${filter}`}
             title="Jump back in"
             data={newReleases}
             keyExtractor={(a) => a.id}
@@ -208,20 +216,23 @@ export default function HomeScreen() {
         ) : null}
 
         {plan === 'free' && !adDismissed ? (
-          <Pressable style={styles.adCard} onPress={() => router.push('/premium')}>
-            <View style={{ flex: 1 }}>
-              <Text style={styles.adTag}>AD · WAVEFORM PREMIUM</Text>
-              <Text style={styles.adTitle}>Your music, uninterrupted.</Text>
-              <Text style={styles.adSub}>Go Premium for the full stats card and zero house ads.</Text>
-            </View>
-            <Pressable onPress={() => setAdDismissed(true)} hitSlop={10} accessibilityLabel="Dismiss ad">
-              <X size={16} color={theme.colors.textSecondary} />
-            </Pressable>
-          </Pressable>
+          <Animated.View layout={LinearTransition.springify()} exiting={FadeOut.duration(150)}>
+            <PressableScale style={styles.adCard} onPress={() => router.push('/premium')}>
+              <View style={{ flex: 1 }}>
+                <Text style={styles.adTag}>AD · WAVEFORM PREMIUM</Text>
+                <Text style={styles.adTitle}>Your music, uninterrupted.</Text>
+                <Text style={styles.adSub}>Go Premium for the full stats card and zero house ads.</Text>
+              </View>
+              <Pressable onPress={() => setAdDismissed(true)} hitSlop={10} accessibilityLabel="Dismiss ad">
+                <X size={16} color={theme.colors.textSecondary} />
+              </Pressable>
+            </PressableScale>
+          </Animated.View>
         ) : null}
 
         {showArtists ? (
           <Shelf
+            key={`artists-${filter}`}
             title="Your top artists"
             data={topArtists}
             keyExtractor={(a) => a.id}
@@ -233,6 +244,7 @@ export default function HomeScreen() {
 
         {showMixes ? (
           <Shelf
+            key={`editorial-${filter}`}
             title="Soundtrack your day"
             data={editorial}
             keyExtractor={(p) => p.id}
@@ -249,6 +261,7 @@ export default function HomeScreen() {
 
         {showAlbums && notifReleases ? (
           <Shelf
+            key={`releases-${filter}`}
             title="New releases for you"
             data={newReleases.slice(0, 4)}
             keyExtractor={(a) => `nr-${a.id}`}

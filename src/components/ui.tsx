@@ -3,6 +3,7 @@ import { Pressable, StyleSheet, Text, View, type StyleProp, type ViewStyle } fro
 import Animated, {
   FadeIn,
   FadeInDown,
+  FadeOut,
   LinearTransition,
   SlideInUp,
   SlideOutDown,
@@ -20,32 +21,38 @@ import { pulseOpacity, staggerDelay, usePressScale } from './motion';
 
 /**
  * Universal press-scale wrapper: 0.97 spring on press-in (0.94 for discs
- * via `scale`), plain render under Reduced Motion. `layout` opts the
- * wrapper into LinearTransition for reorder/filter animations.
+ * via `scale`), plain render under Reduced Motion. `style` lands on the
+ * inner Pressable (so rows/cards keep their layout); `outerStyle` sizes
+ * the wrapper when it is a flex item (grid cells, row mains). `layout`
+ * opts the wrapper into LinearTransition for reorder/filter animations.
  */
 export function PressableScale({
   onPress,
   style,
+  outerStyle,
   scale,
   layout,
   children,
   accessibilityLabel,
   accessibilityRole,
   accessibilityState,
+  hitSlop,
 }: {
   onPress: () => void;
   style?: StyleProp<ViewStyle>;
+  outerStyle?: StyleProp<ViewStyle>;
   scale?: number;
   layout?: boolean;
   children: React.ReactNode;
   accessibilityLabel?: string;
   accessibilityRole?: 'button';
   accessibilityState?: { selected?: boolean };
+  hitSlop?: number;
 }) {
   const reduced = useReducedMotion();
   const press = usePressScale(scale);
   return (
-    <Animated.View style={[reduced ? undefined : press.style, style]} layout={layout ? LinearTransition.springify() : undefined}>
+    <Animated.View style={[reduced ? undefined : press.style, outerStyle]} layout={layout ? LinearTransition.springify() : undefined}>
       <Pressable
         onPress={onPress}
         onPressIn={reduced ? undefined : press.onPressIn}
@@ -53,6 +60,8 @@ export function PressableScale({
         accessibilityLabel={accessibilityLabel}
         accessibilityRole={accessibilityRole}
         accessibilityState={accessibilityState}
+        hitSlop={hitSlop}
+        style={style}
       >
         {children}
       </Pressable>
@@ -62,7 +71,11 @@ export function PressableScale({
 
 /* ------------------------------ StaggerItem ------------------------------ */
 
-/** FadeInDown stagger for list items: 40 ms/item, first 8 only, then plain. */
+/**
+ * FadeInDown stagger for list items: 40 ms/item, first 8 only, then plain.
+ * With `layout`, removed items fade out (150 ms) and siblings slide —
+ * the reorder/filter/delete animation.
+ */
 export function StaggerItem({
   index,
   layout,
@@ -78,6 +91,7 @@ export function StaggerItem({
   return (
     <Animated.View
       entering={reduced || index >= 8 ? undefined : FadeInDown.delay(staggerDelay(index)).duration(300)}
+      exiting={reduced || !layout ? undefined : FadeOut.duration(150)}
       layout={layout ? LinearTransition.springify() : undefined}
       style={style}
     >

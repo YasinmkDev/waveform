@@ -7,7 +7,7 @@ import { Clock, Search as SearchIcon, X } from 'lucide-react-native';
 
 import { PlayDisc } from '../../components/PlayDisc';
 import { TrackRow } from '../../components/TrackRow';
-import { Chip, EmptyState } from '../../components/ui';
+import { Chip, EmptyState, PressableScale, StaggerItem } from '../../components/ui';
 import {
   GENRES,
   art,
@@ -66,9 +66,9 @@ export default function SearchScreen() {
           autoCorrect={false}
         />
         {query ? (
-          <Pressable onPress={() => setQuery('')} hitSlop={8} accessibilityLabel="Clear search">
+          <PressableScale onPress={() => setQuery('')} scale={0.9} hitSlop={8} accessibilityLabel="Clear search">
             <X size={18} color={theme.colors.textSecondary} />
-          </Pressable>
+          </PressableScale>
         ) : null}
       </View>
 
@@ -83,24 +83,27 @@ export default function SearchScreen() {
                 </Pressable>
               </View>
             ) : null}
-            {recentSearches.map((r) => (
-              <Pressable key={r} style={styles.recentRow} onPress={() => setQuery(r)}>
-                <Clock size={18} color={theme.colors.textSecondary} />
-                <Text style={styles.recentText}>{r}</Text>
-              </Pressable>
+            {recentSearches.map((r, i) => (
+              <StaggerItem key={r} index={i} layout>
+                <PressableScale style={styles.recentRow} onPress={() => setQuery(r)}>
+                  <Clock size={18} color={theme.colors.textSecondary} />
+                  <Text style={styles.recentText}>{r}</Text>
+                </PressableScale>
+              </StaggerItem>
             ))}
             <Text style={styles.section}>Browse all</Text>
             <View style={styles.genreGrid}>
-              {GENRES.map((g) => (
-                <Pressable
-                  key={g.id}
-                  style={[styles.genreTile, { backgroundColor: g.color }]}
-                  onPress={() => router.push(`/genre/${g.id}`)}
-                  accessibilityRole="button"
-                >
-                  <Text style={styles.genreName}>{g.name}</Text>
-                  <View style={styles.genreMotif} />
-                </Pressable>
+              {GENRES.map((g, i) => (
+                <StaggerItem key={g.id} index={i} style={{ width: '47.8%' }}>
+                  <PressableScale
+                    style={[styles.genreTile, { backgroundColor: g.color }]}
+                    onPress={() => router.push(`/genre/${g.id}`)}
+                    accessibilityRole="button"
+                  >
+                    <Text style={styles.genreName}>{g.name}</Text>
+                    <View style={styles.genreMotif} />
+                  </PressableScale>
+                </StaggerItem>
               ))}
             </View>
           </>
@@ -129,7 +132,7 @@ export default function SearchScreen() {
               <>
                 <Text style={styles.section}>Top result</Text>
                 {topArtist ? (
-                  <Pressable style={styles.topCard} onPress={() => router.push(`/artist/${topArtist.id}`)}>
+                  <PressableScale style={styles.topCard} onPress={() => router.push(`/artist/${topArtist.id}`)}>
                     <Image source={art(topArtist.image)} style={styles.topArtistImg} contentFit="cover" />
                     <View style={{ flex: 1, minWidth: 0 }}>
                       <Text style={styles.topName} numberOfLines={1}>
@@ -137,9 +140,9 @@ export default function SearchScreen() {
                       </Text>
                       <Text style={styles.topType}>Artist</Text>
                     </View>
-                  </Pressable>
+                  </PressableScale>
                 ) : topTrack ? (
-                  <View style={styles.topCard}>
+                  <PressableScale style={styles.topCard} onPress={() => playContext(resultTrackIds, 0, 'Search results')}>
                     <Image source={art(coverOfTrack(topTrack))} style={styles.topTrackImg} contentFit="cover" />
                     <View style={{ flex: 1, minWidth: 0 }}>
                       <Text style={styles.topName} numberOfLines={1}>
@@ -152,7 +155,7 @@ export default function SearchScreen() {
                       isPlaying={false}
                       onPress={() => playContext(resultTrackIds, 0, 'Search results')}
                     />
-                  </View>
+                  </PressableScale>
                 ) : null}
               </>
             ) : null}
@@ -160,8 +163,10 @@ export default function SearchScreen() {
             {showTracks && results.tracks.length ? (
               <>
                 <Text style={styles.section}>Songs</Text>
-                {results.tracks.map((t) => (
-                  <TrackRow key={t.id} track={t} contextTracks={resultTrackIds} contextLabel="Search results" />
+                {results.tracks.map((t, i) => (
+                  <StaggerItem key={t.id} index={i} layout>
+                    <TrackRow track={t} contextTracks={resultTrackIds} contextLabel="Search results" />
+                  </StaggerItem>
                 ))}
               </>
             ) : null}
@@ -169,14 +174,16 @@ export default function SearchScreen() {
             {showArtists && results.artists.length ? (
               <>
                 <Text style={styles.section}>Artists</Text>
-                {results.artists.map((a) => (
-                  <Pressable key={a.id} style={styles.entityRow} onPress={() => router.push(`/artist/${a.id}`)}>
-                    <Image source={art(a.image)} style={styles.entityCircle} contentFit="cover" />
-                    <View>
-                      <Text style={styles.entityName}>{a.name}</Text>
-                      <Text style={styles.entityType}>Artist</Text>
-                    </View>
-                  </Pressable>
+                {results.artists.map((a, i) => (
+                  <StaggerItem key={a.id} index={i} layout>
+                    <PressableScale style={styles.entityRow} onPress={() => router.push(`/artist/${a.id}`)}>
+                      <Image source={art(a.image)} style={styles.entityCircle} contentFit="cover" />
+                      <View>
+                        <Text style={styles.entityName}>{a.name}</Text>
+                        <Text style={styles.entityType}>Artist</Text>
+                      </View>
+                    </PressableScale>
+                  </StaggerItem>
                 ))}
               </>
             ) : null}
@@ -184,14 +191,16 @@ export default function SearchScreen() {
             {showAlbums && results.albums.length ? (
               <>
                 <Text style={styles.section}>Albums</Text>
-                {results.albums.map((a) => (
-                  <Pressable key={a.id} style={styles.entityRow} onPress={() => router.push(`/album/${a.id}`)}>
-                    <Image source={art(a.cover)} style={styles.entitySquare} contentFit="cover" />
-                    <View>
-                      <Text style={styles.entityName}>{a.title}</Text>
-                      <Text style={styles.entityType}>Album · {getArtist(a.artistId)?.name}</Text>
-                    </View>
-                  </Pressable>
+                {results.albums.map((a, i) => (
+                  <StaggerItem key={a.id} index={i} layout>
+                    <PressableScale style={styles.entityRow} onPress={() => router.push(`/album/${a.id}`)}>
+                      <Image source={art(a.cover)} style={styles.entitySquare} contentFit="cover" />
+                      <View>
+                        <Text style={styles.entityName}>{a.title}</Text>
+                        <Text style={styles.entityType}>Album · {getArtist(a.artistId)?.name}</Text>
+                      </View>
+                    </PressableScale>
+                  </StaggerItem>
                 ))}
               </>
             ) : null}
@@ -199,14 +208,16 @@ export default function SearchScreen() {
             {showPlaylists && results.playlists.length ? (
               <>
                 <Text style={styles.section}>Playlists</Text>
-                {results.playlists.map((p) => (
-                  <Pressable key={p.id} style={styles.entityRow} onPress={() => router.push(`/playlist/${p.id}`)}>
-                    <Image source={art(p.cover)} style={styles.entitySquare} contentFit="cover" />
-                    <View>
-                      <Text style={styles.entityName}>{p.title}</Text>
-                      <Text style={styles.entityType}>Playlist · {p.owner}</Text>
-                    </View>
-                  </Pressable>
+                {results.playlists.map((p, i) => (
+                  <StaggerItem key={p.id} index={i} layout>
+                    <PressableScale style={styles.entityRow} onPress={() => router.push(`/playlist/${p.id}`)}>
+                      <Image source={art(p.cover)} style={styles.entitySquare} contentFit="cover" />
+                      <View>
+                        <Text style={styles.entityName}>{p.title}</Text>
+                        <Text style={styles.entityType}>Playlist · {p.owner}</Text>
+                      </View>
+                    </PressableScale>
+                  </StaggerItem>
                 ))}
               </>
             ) : null}
@@ -273,7 +284,6 @@ const styles = StyleSheet.create({
     paddingHorizontal: theme.spacing.lg,
   },
   genreTile: {
-    width: '47.8%',
     height: 104,
     borderRadius: theme.radii.md,
     padding: theme.spacing.md,

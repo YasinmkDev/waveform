@@ -2,6 +2,7 @@ import { memo, useState } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { Image } from 'expo-image';
 import { MoreHorizontal } from 'lucide-react-native';
+import Animated, { useReducedMotion } from 'react-native-reanimated';
 
 import { art, coverOfTrack, getArtist, type Track } from '../data/catalog';
 import { useLibraryStore } from '../store/library';
@@ -9,6 +10,7 @@ import { usePlayerStore } from '../store/player';
 import { theme } from '../theme';
 import { Equalizer } from './Equalizer';
 import { LikeButton } from './LikeButton';
+import { usePressScale } from './motion';
 import { TrackMenu } from './sheets';
 
 export function formatDuration(seconds: number): string {
@@ -49,6 +51,8 @@ export const TrackRow = memo(function TrackRow({
   const togglePlay = usePlayerStore((s) => s.togglePlay);
   const [menuOpen, setMenuOpen] = useState(false);
   const artist = getArtist(track.artistId);
+  const reduced = useReducedMotion();
+  const press = usePressScale();
 
   const onPress = () => {
     if (isCurrent) {
@@ -61,9 +65,12 @@ export const TrackRow = memo(function TrackRow({
 
   return (
     <>
+      <Animated.View style={reduced ? undefined : press.style}>
       <Pressable
         onPress={onPress}
-        style={({ pressed }) => [styles.row, pressed && styles.rowPressed]}
+        onPressIn={reduced ? undefined : press.onPressIn}
+        onPressOut={reduced ? undefined : press.onPressOut}
+        style={styles.row}
         accessibilityRole="button"
         accessibilityLabel={`${track.title} by ${artist?.name ?? ''}`}
       >
@@ -102,6 +109,7 @@ export const TrackRow = memo(function TrackRow({
           <MoreHorizontal size={20} color={theme.colors.textSecondary} />
         </Pressable>
       </Pressable>
+      </Animated.View>
       <TrackMenu
         track={track}
         visible={menuOpen}
@@ -123,7 +131,6 @@ const styles = StyleSheet.create({
     gap: theme.spacing.sm,
     minHeight: 64,
   },
-  rowPressed: { backgroundColor: theme.colors.surfaceAlt },
   indexCell: { width: 22, alignItems: 'center' },
   indexText: { color: theme.colors.textSecondary, fontSize: theme.fontSize.body },
   art: { width: theme.layout.artworkSm, height: theme.layout.artworkSm, borderRadius: theme.radii.sm },
