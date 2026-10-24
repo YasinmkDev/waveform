@@ -1,5 +1,5 @@
 import { useMemo } from 'react';
-import { ScrollView, StyleSheet, Text, View } from 'react-native';
+import { ScrollView, Share, StyleSheet, Text, View } from 'react-native';
 import { Image } from 'expo-image';
 import { router } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -196,7 +196,25 @@ export default function ProfileScreen() {
         {hasData ? <Text style={styles.monthFact}>{stats.streak}-day streak and counting</Text> : null}
         <PressableScale
           style={styles.shareBtn}
-          onPress={() => showToast(hasData ? 'Card ready — screenshot to share it anywhere' : 'Listen first, then this card tells your story')}
+          onPress={() => {
+            if (!hasData) {
+              showToast('Listen first, then this card tells your story');
+              return;
+            }
+            const lines = [
+              `My month on Waveform: ${formatMinutes(stats.minutes)} of music so far.`,
+              stats.topArtist ? `Top artist: ${stats.topArtist.name}.` : '',
+              stats.topTrack ? `On repeat: ${stats.topTrack.title}.` : '',
+              `${stats.streak}-day streak and counting.`,
+            ]
+              .filter(Boolean)
+              .join(' ');
+            void Share.share({ message: lines })
+              .then((r) => {
+                if (r.action === Share.sharedAction) showToast('Shared');
+              })
+              .catch(() => showToast("Couldn't share — try again"));
+          }}
         >
           <Share2 size={16} color={theme.colors.onAccent} />
           <Text style={styles.shareText}>Share your month</Text>

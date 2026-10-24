@@ -15,7 +15,10 @@ import {
   ARTISTS,
   PLAYLISTS,
   art,
+  coverOfTrack,
+  getArtist,
   getPlaylist,
+  tracksOf,
 } from '../../data/catalog';
 import { buildTaste, generateTasteMix, resumeContexts, weeklyMixPlaylist } from '../../lib/mix';
 import { playedToday, syncStreak } from '../../lib/stats';
@@ -64,6 +67,11 @@ export default function HomeScreen() {
 
   const mixes = PLAYLISTS.filter((p) => p.kind === 'mix' && p.id !== 'weekly-mix');
   const editorial = PLAYLISTS.filter((p) => p.kind === 'editorial');
+  // Recently played: last distinct tracks from the real play log.
+  const recentTracks = useMemo(() => {
+    const ids = [...new Set([...events].reverse().map((e) => e.trackId))].slice(0, 8);
+    return tracksOf(ids);
+  }, [events]);
   const newReleases = [...ALBUMS].sort((a, b) => b.year - a.year);
   const topArtists = [...ARTISTS]
     .sort((a, b) => (taste.artistWeights.get(b.id) ?? 0) - (taste.artistWeights.get(a.id) ?? 0))
@@ -210,6 +218,23 @@ export default function HomeScreen() {
                 title={a.title}
                 caption={`${a.year} · Album`}
                 onPress={() => router.push(`/album/${a.id}`)}
+              />
+            )}
+          />
+        ) : null}
+
+        {filter === 'all' && recentTracks.length ? (
+          <Shelf
+            key={`recent-${filter}`}
+            title="Recently played"
+            data={recentTracks}
+            keyExtractor={(t) => t.id}
+            renderItem={(t) => (
+              <SquareCard
+                coverKey={coverOfTrack(t)}
+                title={t.title}
+                caption={getArtist(t.artistId)?.name}
+                onPress={() => playContext([t.id], 0, 'Recently played')}
               />
             )}
           />

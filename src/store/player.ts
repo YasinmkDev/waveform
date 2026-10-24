@@ -25,6 +25,9 @@ interface PlayerState {
   position: number;
   duration: number;
   ended: boolean;
+  /** Epoch ms when the sleep timer stops playback; null = no timer. */
+  sleepUntil: number | null;
+  setSleepTimer: (minutes: number | null) => void;
   playContext: (trackIds: string[], startIndex: number, label: string) => void;
   togglePlay: () => void;
   next: (manual?: boolean) => void;
@@ -33,6 +36,8 @@ interface PlayerState {
   toggleShuffle: () => void;
   cycleRepeat: () => void;
   addToQueue: (trackId: string) => void;
+  /** Insert directly after the current track — the TrackMenu "Play next". */
+  playNext: (trackId: string) => void;
   removeFromQueue: (i: number) => void;
   moveQueueItem: (from: number, to: number) => void;
   clearQueue: () => void;
@@ -102,6 +107,15 @@ export const usePlayerStore = create<PlayerState>()(
       position: 0,
       duration: 0,
       ended: false,
+      sleepUntil: null,
+
+      setSleepTimer: (minutes) => {
+        if (minutes == null) {
+          set({ sleepUntil: null });
+          return;
+        }
+        set({ sleepUntil: Date.now() + minutes * 60000 });
+      },
 
       playContext: (trackIds, startIndex, label) => {
         if (!trackIds.length) return;
@@ -233,6 +247,20 @@ export const usePlayerStore = create<PlayerState>()(
         useUiStore.getState().showToast('Added to queue');
       },
 
+      playNext: (trackId) => {
+        const s = get();
+        if (!s.queue.length) {
+          get().playContext([trackId], 0, 'Queue');
+          return;
+        }
+        const queue = [...s.queue];
+        queue.splice(s.index + 1, 0, trackId);
+        const baseQueue = s.baseQueue.includes(trackId) ? s.baseQueue : [...s.baseQueue, trackId];
+        set({ queue, baseQueue });
+        const title = getTrack(trackId)?.title ?? 'That track';
+        useUiStore.getState().showToast(`Up next: ${title}`);
+      },
+
       removeFromQueue: (i) => {
         const s = get();
         if (i === s.index || i < 0 || i >= s.queue.length) return;
@@ -283,6 +311,7 @@ export const usePlayerStore = create<PlayerState>()(
           index: 0,
           contextLabel: '',
           lastNavDirection: null,
+          sleepUntil: null,
           isPlaying: false,
           isBuffering: false,
           position: 0,
@@ -293,6 +322,13 @@ export const usePlayerStore = create<PlayerState>()(
 
       _onStatus: (status) => {
         const s = get();
+        // Sleep timer: stop cleanly when reached, whatever is playing.
+        if (s.sleepUntil && Date.now() >= s.sleepUntil) {
+          enginePause();
+          set({ sleepUntil: null, isPlaying: false });
+          useUiStore.getState().showToast('Sleep timer stopped playback');
+          return;
+        }
         if (status.error) {
           const now = Date.now();
           recentErrors = [...recentErrors.filter((t) => now - t < 5000), now];

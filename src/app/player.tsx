@@ -6,6 +6,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import {
   ChevronDown,
   ListMusic,
+  Moon,
   MoreHorizontal,
   Plus,
   Repeat,
@@ -31,8 +32,9 @@ import { LikeButton } from '../components/LikeButton';
 import { artDragReset, artDragUpdate, springTo } from '../components/motion';
 import { PlayDisc } from '../components/PlayDisc';
 import { formatDuration } from '../components/TrackRow';
-import { PlaylistPicker, TrackMenu } from '../components/sheets';
+import { PlaylistPicker, SleepTimerSheet, TrackMenu } from '../components/sheets';
 import { PressableScale } from '../components/ui';
+import { copyTrackLink } from '../lib/share';
 import { art, coverOfTrack, getAlbum, getArtist, getPlaylist, getTrack } from '../data/catalog';
 import { usePlayerStore } from '../store/player';
 import { useUiStore } from '../store/ui';
@@ -87,6 +89,30 @@ function Scrubber() {
   );
 }
 
+/**
+ * Sleep countdown chip: re-renders on position ticks (2×/s), so the
+ * remaining time counts down live. Tap reopens the timer sheet.
+ */
+function SleepChip({ onPress }: { onPress: () => void }) {
+  const sleepUntil = usePlayerStore((s) => s.sleepUntil);
+  usePlayerStore((s) => s.position); // tick subscription only
+  if (sleepUntil == null) return null;
+  // Countdown text must read the current time on each tick render — that is the feature.
+  // eslint-disable-next-line react-hooks/purity
+  const left = sleepUntil - Date.now();
+  if (left <= 0) return null;
+  const m = Math.floor(left / 60000);
+  const s = Math.floor((left % 60000) / 1000);
+  return (
+    <PressableScale style={styles.sleepChip} onPress={onPress} accessibilityLabel="Sleep timer">
+      <Moon size={14} color={theme.colors.text} />
+      <Text style={styles.sleepChipText}>
+        Sleep in {m}:{String(s).padStart(2, '0')}
+      </Text>
+    </PressableScale>
+  );
+}
+
 export default function PlayerScreen() {
   const trackId = usePlayerStore((s) => s.queue[s.index]);
   const contextLabel = usePlayerStore((s) => s.contextLabel);
@@ -105,6 +131,7 @@ export default function PlayerScreen() {
   const showToast = useUiStore((s) => s.showToast);
   const [menuOpen, setMenuOpen] = useState(false);
   const [pickerOpen, setPickerOpen] = useState(false);
+  const [sleepOpen, setSleepOpen] = useState(false);
   const reduced = useReducedMotion();
   const dragX = useSharedValue(0);
   const dragScale = useSharedValue(1);
@@ -235,14 +262,23 @@ export default function PlayerScreen() {
         </PressableScale>
       ) : null}
 
+      <SleepChip onPress={() => setSleepOpen(true)} />
+
       <View style={styles.footer}>
-        <PressableScale
-          style={styles.iconBtn}
-          onPress={() => showToast('Link copied to clipboard')}
-          accessibilityLabel="Share"
-        >
-          <Share2 size={20} color={theme.colors.textSecondary} />
-        </PressableScale>
+        <View style={styles.footerLeft}>
+          <PressableScale
+            style={styles.iconBtn}
+            onPress={() => {
+              void copyTrackLink(track).then(() => showToast('Link copied to clipboard'));
+            }}
+            accessibilityLabel="Share"
+          >
+            <Share2 size={20} color={theme.colors.textSecondary} />
+          </PressableScale>
+          <PressableScale style={styles.iconBtn} onPress={() => setSleepOpen(true)} accessibilityLabel="Sleep timer">
+            <Moon size={20} color={theme.colors.textSecondary} />
+          </PressableScale>
+        </View>
         <PressableScale style={styles.queueBtn} onPress={() => router.push('/queue')} accessibilityLabel="Open queue">
           <ListMusic size={20} color={theme.colors.text} />
           <Text style={styles.queueText}>Queue</Text>
@@ -251,6 +287,7 @@ export default function PlayerScreen() {
 
       <TrackMenu track={track} visible={menuOpen} onClose={() => setMenuOpen(false)} />
       <PlaylistPicker track={track} visible={pickerOpen} onClose={() => setPickerOpen(false)} />
+      <SleepTimerSheet visible={sleepOpen} onClose={() => setSleepOpen(false)} />
     </SafeAreaView>
   );
 }
@@ -306,6 +343,19 @@ const styles = StyleSheet.create({
   },
   keepListeningText: { color: theme.colors.onAccent, fontWeight: theme.fontWeight.bold, fontSize: theme.fontSize.small },
   footer: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginTop: 'auto' },
+  footerLeft: { flexDirection: 'row', alignItems: 'center' },
+  sleepChip: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    alignSelf: 'center',
+    gap: 6,
+    backgroundColor: theme.colors.surfaceAlt,
+    borderRadius: theme.radii.pill,
+    paddingHorizontal: 14,
+    paddingVertical: 7,
+    marginTop: theme.spacing.md,
+  },
+  sleepChipText: { color: theme.colors.text, fontSize: theme.fontSize.small, fontWeight: theme.fontWeight.semibold, fontVariant: ['tabular-nums'] },
   queueBtn: { flexDirection: 'row', alignItems: 'center', gap: 6, padding: 10 },
   queueText: { color: theme.colors.text, fontSize: theme.fontSize.small, fontWeight: theme.fontWeight.semibold },
   emptyWrap: { flex: 1, alignItems: 'center', justifyContent: 'center', gap: theme.spacing.sm, paddingHorizontal: theme.spacing.xxl },

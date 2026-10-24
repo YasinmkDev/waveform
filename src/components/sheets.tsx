@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import { Modal, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
 import { Image } from 'expo-image';
 import { router } from 'expo-router';
-import { Check, Disc3, Heart, ListMusic, ListPlus, Play, Plus, Share2, User, X } from 'lucide-react-native';
+import { Check, Disc3, Heart, ListMusic, ListPlus, Moon, Play, Plus, Share2, User, X } from 'lucide-react-native';
 import Animated, {
   useAnimatedStyle,
   useReducedMotion,
@@ -10,6 +10,7 @@ import Animated, {
 } from 'react-native-reanimated';
 
 import { art, coverOfTrack, getAlbum, getArtist, type Track } from '../data/catalog';
+import { copyTrackLink } from '../lib/share';
 import { useLibraryStore } from '../store/library';
 import { usePlayerStore } from '../store/player';
 import { useUiStore } from '../store/ui';
@@ -212,6 +213,52 @@ export function PlaylistPicker({
   );
 }
 
+/* ------------------------------ Sleep timer ------------------------------- */
+
+/**
+ * Sleep timer sheet: 15 / 30 / 60 minutes or Off. The player store holds
+ * `sleepUntil`; the engine stops playback when it is reached, across
+ * track changes, and the Now Playing footer shows the countdown.
+ */
+export function SleepTimerSheet({ visible, onClose }: { visible: boolean; onClose: () => void }) {
+  const sleepUntil = usePlayerStore((s) => s.sleepUntil);
+  const setSleepTimer = usePlayerStore((s) => s.setSleepTimer);
+  const showToast = useUiStore((s) => s.showToast);
+
+  const pick = (minutes: number | null) => {
+    setSleepTimer(minutes);
+    showToast(minutes == null ? 'Sleep timer off' : `Sleep timer set for ${minutes} minutes`);
+    onClose();
+  };
+
+  // Active choice is read at open time; the sheet remounts on every open.
+  // eslint-disable-next-line react-hooks/purity -- current time read is the feature here
+  const activeMinutes = sleepUntil != null ? Math.round((sleepUntil - Date.now()) / 60000) : null;
+
+  return (
+    <SheetShell visible={visible} onClose={onClose}>
+      <Text style={styles.sheetTitle}>Sleep timer</Text>
+      <Text style={styles.sheetHint}>Playback stops when the timer ends, even mid-playlist.</Text>
+      {[15, 30, 60].map((m) => (
+        <SheetRow
+          key={m}
+          icon={<Moon size={22} color={theme.colors.textSecondary} />}
+          label={`${m} minutes`}
+          active={activeMinutes === m}
+          onPress={() => pick(m)}
+        />
+      ))}
+      {sleepUntil != null ? (
+        <SheetRow
+          icon={<X size={22} color={theme.colors.textSecondary} />}
+          label="Turn off timer"
+          onPress={() => pick(null)}
+        />
+      ) : null}
+    </SheetShell>
+  );
+}
+
 /* ------------------------------- Track menu ------------------------------- */
 
 export function TrackMenu({
@@ -227,7 +274,7 @@ export function TrackMenu({
 }) {
   const liked = useLibraryStore((s) => (track ? s.likedTrackIds.includes(track.id) : false));
   const toggleLike = useLibraryStore((s) => s.toggleLike);
-  const addToQueue = usePlayerStore((s) => s.addToQueue);
+  const playNext = usePlayerStore((s) => s.playNext);
   const showToast = useUiStore((s) => s.showToast);
   const [pickerOpen, setPickerOpen] = useState(false);
 
@@ -270,9 +317,9 @@ export function TrackMenu({
         />
         <SheetRow
           icon={<Play size={22} color={theme.colors.textSecondary} />}
-          label="Play next (add to queue)"
+          label="Play next"
           onPress={() => {
-            addToQueue(track.id);
+            playNext(track.id);
             close();
           }}
         />
@@ -296,8 +343,10 @@ export function TrackMenu({
           icon={<Share2 size={22} color={theme.colors.textSecondary} />}
           label="Share"
           onPress={() => {
-            showToast('Link copied to clipboard');
-            close();
+            void copyTrackLink(track).then(() => {
+              showToast('Link copied to clipboard');
+              close();
+            });
           }}
         />
         {onRemoveFromPlaylist ? (
