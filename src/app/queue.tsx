@@ -170,7 +170,7 @@ export default function QueueScreen() {
 const styles = StyleSheet.create({
   safe: { flex: 1, backgroundColor: theme.colors.canvas },
   header: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: theme.spacing.sm },
-  title: { color: theme.colors.text, fontSize: theme.fontSize.body, fontWeight: theme.fontWeight.bold },
+  title: { color: theme.colors.text, fontSize: theme.fontSize.section, fontWeight: theme.fontWeight.bold },
   iconBtn: { width: 44, height: 44, alignItems: 'center', justifyContent: 'center' },
   section: {
     color: theme.colors.text,

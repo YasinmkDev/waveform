@@ -146,7 +146,7 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     paddingHorizontal: theme.spacing.sm,
   },
-  headerTitle: { color: theme.colors.text, fontSize: theme.fontSize.body, fontWeight: theme.fontWeight.bold },
+  headerTitle: { color: theme.colors.text, fontSize: theme.fontSize.section, fontWeight: theme.fontWeight.bold },
   iconBtn: { width: 44, height: 44, alignItems: 'center', justifyContent: 'center' },
   section: {
     color: theme.colors.textSecondary,

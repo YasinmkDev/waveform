@@ -103,6 +103,11 @@ export default function PremiumScreen() {
               style={[styles.planCard, tier === 'monthly' && styles.planCardOn]}
               onPress={() => setTier('monthly')}
             >
+              {tier === 'monthly' ? (
+                <View style={styles.selectedCheck}>
+                  <Check size={18} color={theme.colors.accent} strokeWidth={3} />
+                </View>
+              ) : null}
               <Text style={styles.planName}>Monthly</Text>
               <Text style={styles.planPrice}>$4.99<Text style={styles.planPer}> / month</Text></Text>
               <Text style={styles.planNote}>Demo pricing</Text>
@@ -112,6 +117,11 @@ export default function PremiumScreen() {
               style={[styles.planCard, tier === 'yearly' && styles.planCardOn]}
               onPress={() => setTier('yearly')}
             >
+              {tier === 'yearly' ? (
+                <View style={styles.selectedCheck}>
+                  <Check size={18} color={theme.colors.accent} strokeWidth={3} />
+                </View>
+              ) : null}
               <View style={styles.badge}>
                 <Text style={styles.badgeText}>BEST VALUE</Text>
               </View>
@@ -147,7 +157,7 @@ const styles = StyleSheet.create({
   header: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
   headerTitle: { color: theme.colors.text, fontSize: theme.fontSize.body, fontWeight: theme.fontWeight.bold },
   iconBtn: { width: 44, height: 44, alignItems: 'center', justifyContent: 'center' },
-  title: { color: theme.colors.text, fontSize: 26, fontWeight: theme.fontWeight.extrabold, marginTop: theme.spacing.lg },
+  title: { color: theme.colors.text, fontSize: theme.fontSize.display, fontWeight: theme.fontWeight.extrabold, marginTop: theme.spacing.lg, letterSpacing: -0.5, lineHeight: 36 },
   sub: { color: theme.colors.textSecondary, fontSize: theme.fontSize.body, marginTop: theme.spacing.sm, lineHeight: 21 },
   table: { marginTop: theme.spacing.xxl, borderRadius: theme.radii.lg, backgroundColor: theme.colors.surface, padding: theme.spacing.md },
   tr: { flexDirection: 'row', alignItems: 'center', paddingVertical: 9 },
@@ -165,6 +175,7 @@ const styles = StyleSheet.create({
     gap: 3,
   },
   planCardOn: { borderColor: theme.colors.accent, backgroundColor: theme.colors.surface },
+  selectedCheck: { position: 'absolute', top: theme.spacing.md, right: theme.spacing.md },
   badge: {
     alignSelf: 'flex-start',
     backgroundColor: theme.colors.accent,
@@ -175,7 +186,7 @@ const styles = StyleSheet.create({
   },
   badgeText: { color: theme.colors.onAccent, fontSize: 10, fontWeight: theme.fontWeight.extrabold, letterSpacing: 0.6 },
   planName: { color: theme.colors.text, fontSize: theme.fontSize.body, fontWeight: theme.fontWeight.bold },
-  planPrice: { color: theme.colors.text, fontSize: 22, fontWeight: theme.fontWeight.extrabold },
+  planPrice: { color: theme.colors.text, fontSize: theme.fontSize.stat, fontWeight: theme.fontWeight.extrabold },
   planPer: { fontSize: theme.fontSize.small, color: theme.colors.textSecondary, fontWeight: theme.fontWeight.medium },
   planNote: { color: theme.colors.textSecondary, fontSize: theme.fontSize.caption },
   already: { color: theme.colors.accent, textAlign: 'center', marginTop: theme.spacing.xl, fontWeight: theme.fontWeight.bold },
@@ -209,6 +220,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  doneTitle: { color: theme.colors.text, fontSize: 24, fontWeight: theme.fontWeight.extrabold, marginTop: theme.spacing.xl },
+  doneTitle: { color: theme.colors.text, fontSize: theme.fontSize.stat, fontWeight: theme.fontWeight.extrabold, marginTop: theme.spacing.xl },
   doneSub: { color: theme.colors.textSecondary, fontSize: theme.fontSize.body, textAlign: 'center', marginTop: theme.spacing.sm, lineHeight: 21 },
 });

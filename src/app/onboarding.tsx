@@ -120,9 +120,9 @@ export default function OnboardingScreen() {
                 <Animated.View key={g.id} entering={FadeInDown.delay(i * 35).duration(240)}>
                   <PressableScale
                     onPress={() => toggleGenre(g.id)}
-                    style={[styles.genreChip, { backgroundColor: selected ? g.color : theme.colors.surfaceAlt }]}
+                    style={[styles.genreChip, { backgroundColor: selected ? theme.colors.text : theme.colors.surfaceAlt }]}
                   >
-                    <Text style={styles.genreChipText}>{g.name}</Text>
+                    <Text style={[styles.genreChipText, selected && { color: theme.colors.onAccent }]}>{g.name}</Text>
                   </PressableScale>
                 </Animated.View>
               );
@@ -176,12 +176,12 @@ const styles = StyleSheet.create({
   segmentOn: { backgroundColor: theme.colors.text },
   skip: { color: theme.colors.textSecondary, fontSize: theme.fontSize.body, fontWeight: theme.fontWeight.semibold },
   body: { flex: 1 },
-  title: { color: theme.colors.text, fontSize: 26, fontWeight: theme.fontWeight.extrabold, lineHeight: 32 },
+  title: { color: theme.colors.text, fontSize: theme.fontSize.headline, fontWeight: theme.fontWeight.extrabold, lineHeight: 34, letterSpacing: -0.5 },
   sub: { color: theme.colors.textSecondary, fontSize: theme.fontSize.body, marginTop: theme.spacing.sm, lineHeight: 21 },
   bubbleGrid: { flexDirection: 'row', flexWrap: 'wrap', paddingTop: theme.spacing.xl, gap: theme.spacing.lg },
   bubbleCell: { width: '29%', alignItems: 'center' },
   bubbleRing: { borderRadius: 999, padding: 3, borderWidth: 2, borderColor: 'transparent' },
-  bubbleRingOn: { borderColor: theme.colors.accent },
+  bubbleRingOn: { borderColor: theme.colors.text },
   bubble: { width: 92, height: 92, borderRadius: 46 },
   checkBadge: {
     position: 'absolute',
@@ -190,7 +190,7 @@ const styles = StyleSheet.create({
     width: 24,
     height: 24,
     borderRadius: 12,
-    backgroundColor: theme.colors.accent,
+    backgroundColor: theme.colors.text,
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -218,7 +218,7 @@ const styles = StyleSheet.create({
   buildWrap: { flex: 1, alignItems: 'center', justifyContent: 'center', paddingHorizontal: theme.spacing.lg },
   buildPulse: { borderRadius: theme.radii.xl, overflow: 'hidden' },
   buildArt: { width: 168, height: 168, borderRadius: theme.radii.xl },
-  buildTitle: { color: theme.colors.text, fontSize: 24, fontWeight: theme.fontWeight.extrabold, marginTop: theme.spacing.xl, textAlign: 'center' },
+  buildTitle: { color: theme.colors.text, fontSize: theme.fontSize.stat, fontWeight: theme.fontWeight.extrabold, marginTop: theme.spacing.xl, textAlign: 'center' },
   successCircle: {
     width: 84,
     height: 84,

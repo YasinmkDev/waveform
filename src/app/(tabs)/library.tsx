@@ -235,7 +235,7 @@ export default function LibraryScreen() {
               <PressableScale outerStyle={{ flex: 1 }} style={styles.rowMain} onPress={() => router.push(e.route as never)}>
                 <Image
                   source={art(e.coverKey ?? 'playlist-top-hits')}
-                  style={[styles.rowArt, e.circle && { borderRadius: 24 }]}
+                  style={[styles.rowArt, e.circle && { borderRadius: theme.layout.artworkRowLg / 2 }]}
                   contentFit="cover"
                 />
                 <View style={{ flex: 1, minWidth: 0 }}>
@@ -305,7 +305,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: theme.spacing.lg,
     paddingTop: theme.spacing.sm,
   },
-  title: { color: theme.colors.text, fontSize: theme.fontSize.title, fontWeight: theme.fontWeight.extrabold },
+  title: { color: theme.colors.text, fontSize: theme.fontSize.headline, fontWeight: theme.fontWeight.extrabold, letterSpacing: -0.5 },
   headerIcons: { flexDirection: 'row', alignItems: 'center' },
   iconBtn: { width: 42, height: 42, alignItems: 'center', justifyContent: 'center' },
   searchWrap: {
@@ -341,8 +341,8 @@ const styles = StyleSheet.create({
     paddingVertical: theme.spacing.sm,
     minHeight: 68,
   },
-  rowArt: { width: 52, height: 52, borderRadius: theme.radii.sm },
-  rowTitle: { color: theme.colors.text, fontSize: theme.fontSize.body, fontWeight: theme.fontWeight.medium },
+  rowArt: { width: theme.layout.artworkRowLg, height: theme.layout.artworkRowLg, borderRadius: theme.radii.sm },
+  rowTitle: { color: theme.colors.text, fontSize: theme.fontSize.body, fontWeight: theme.fontWeight.semibold },
   rowSub: { color: theme.colors.textSecondary, fontSize: theme.fontSize.caption, marginTop: 2 },
   menuTitle: { color: theme.colors.text, fontSize: theme.fontSize.body, fontWeight: theme.fontWeight.bold, paddingVertical: theme.spacing.sm },
 });
