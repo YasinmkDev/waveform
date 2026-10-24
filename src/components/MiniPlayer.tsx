@@ -54,10 +54,17 @@ export function MiniPlayer() {
     if (track && !reduced) popFrom(artScale, 0.92);
   }, [track?.id, reduced, artScale]); // eslint-disable-line react-hooks/exhaustive-deps
 
+  // P2: drag up expands to Now Playing. The pan's dead zone covers both
+  // axes, so a mostly-vertical drag expands while horizontal swipes keep
+  // working exactly as before; taps still pass through untouched.
+  const expand = () => router.push('/player');
   const swipe = Gesture.Pan()
     .activeOffsetX([-14, 14])
+    .activeOffsetY([-14, 14])
     .onEnd((e) => {
-      if (e.translationX <= -56) runOnJS(next)(true);
+      if (e.translationY <= -70 && Math.abs(e.translationY) > Math.abs(e.translationX)) {
+        runOnJS(expand)();
+      } else if (e.translationX <= -56) runOnJS(next)(true);
       else if (e.translationX >= 56) runOnJS(prev)();
     });
 
