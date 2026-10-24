@@ -1,10 +1,90 @@
 import { useEffect } from 'react';
-import { Pressable, StyleSheet, Text, View } from 'react-native';
-import Animated, { FadeIn, FadeOut } from 'react-native-reanimated';
+import { Pressable, StyleSheet, Text, View, type StyleProp, type ViewStyle } from 'react-native';
+import Animated, {
+  FadeIn,
+  FadeInDown,
+  LinearTransition,
+  SlideInUp,
+  SlideOutDown,
+  useAnimatedStyle,
+  useReducedMotion,
+  useSharedValue,
+} from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { useUiStore } from '../store/ui';
 import { theme } from '../theme';
+import { pulseOpacity, staggerDelay, usePressScale } from './motion';
+
+/* ---------------------------- PressableScale ----------------------------- */
+
+/**
+ * Universal press-scale wrapper: 0.97 spring on press-in (0.94 for discs
+ * via `scale`), plain render under Reduced Motion. `layout` opts the
+ * wrapper into LinearTransition for reorder/filter animations.
+ */
+export function PressableScale({
+  onPress,
+  style,
+  scale,
+  layout,
+  children,
+  accessibilityLabel,
+  accessibilityRole,
+  accessibilityState,
+}: {
+  onPress: () => void;
+  style?: StyleProp<ViewStyle>;
+  scale?: number;
+  layout?: boolean;
+  children: React.ReactNode;
+  accessibilityLabel?: string;
+  accessibilityRole?: 'button';
+  accessibilityState?: { selected?: boolean };
+}) {
+  const reduced = useReducedMotion();
+  const press = usePressScale(scale);
+  return (
+    <Animated.View style={[reduced ? undefined : press.style, style]} layout={layout ? LinearTransition.springify() : undefined}>
+      <Pressable
+        onPress={onPress}
+        onPressIn={reduced ? undefined : press.onPressIn}
+        onPressOut={reduced ? undefined : press.onPressOut}
+        accessibilityLabel={accessibilityLabel}
+        accessibilityRole={accessibilityRole}
+        accessibilityState={accessibilityState}
+      >
+        {children}
+      </Pressable>
+    </Animated.View>
+  );
+}
+
+/* ------------------------------ StaggerItem ------------------------------ */
+
+/** FadeInDown stagger for list items: 40 ms/item, first 8 only, then plain. */
+export function StaggerItem({
+  index,
+  layout,
+  style,
+  children,
+}: {
+  index: number;
+  layout?: boolean;
+  style?: StyleProp<ViewStyle>;
+  children: React.ReactNode;
+}) {
+  const reduced = useReducedMotion();
+  return (
+    <Animated.View
+      entering={reduced || index >= 8 ? undefined : FadeInDown.delay(staggerDelay(index)).duration(300)}
+      layout={layout ? LinearTransition.springify() : undefined}
+      style={style}
+    >
+      {children}
+    </Animated.View>
+  );
+}
 
 /* --------------------------------- Chip --------------------------------- */
 
@@ -18,16 +98,13 @@ export function Chip({
   onPress: () => void;
 }) {
   return (
-    <Pressable
-      onPress={onPress}
-      accessibilityRole="button"
-      accessibilityState={{ selected }}
-      style={[styles.chip, selected ? styles.chipOn : styles.chipOff]}
-    >
-      <Text style={[styles.chipText, { color: selected ? theme.colors.onAccent : theme.colors.text }]}>
-        {label}
-      </Text>
-    </Pressable>
+    <PressableScale onPress={onPress} scale={0.96} layout accessibilityRole="button" accessibilityState={{ selected }}>
+      <View style={[styles.chip, selected ? styles.chipOn : styles.chipOff]}>
+        <Text style={[styles.chipText, { color: selected ? theme.colors.onAccent : theme.colors.text }]}>
+          {label}
+        </Text>
+      </View>
+    </PressableScale>
   );
 }
 
@@ -60,10 +137,16 @@ export function EmptyState({
 /* ------------------------------- Skeletons ------------------------------- */
 
 export function SkeletonBox({ width, height, radius = theme.radii.md }: { width: number | `${number}%`; height: number; radius?: number }) {
+  const reduced = useReducedMotion();
+  const opacity = useSharedValue(0.7);
+  useEffect(() => {
+    if (!reduced) pulseOpacity(opacity);
+  }, [reduced, opacity]);
+  const pulseStyle = useAnimatedStyle(() => ({ opacity: opacity.value }));
   return (
     <Animated.View
       entering={FadeIn.duration(300)}
-      style={{ width, height, borderRadius: radius, backgroundColor: theme.colors.surfaceAlt }}
+      style={[{ width, height, borderRadius: radius, backgroundColor: theme.colors.surfaceAlt }, reduced ? undefined : pulseStyle]}
     />
   );
 }
@@ -100,11 +183,13 @@ export function ToastHost() {
     <Animated.View
       key={nonce}
       entering={FadeIn.duration(200)}
-      exiting={FadeOut.duration(180)}
+      exiting={SlideOutDown.duration(200)}
       style={[styles.toast, { bottom: insets.bottom + 76 }]}
       pointerEvents="none"
     >
-      <Text style={styles.toastText}>{toast}</Text>
+      <Animated.View entering={SlideInUp.duration(theme.motion.durationBase)}>
+        <Text style={styles.toastText}>{toast}</Text>
+      </Animated.View>
     </Animated.View>
   );
 }

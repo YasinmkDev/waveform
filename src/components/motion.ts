@@ -2,6 +2,8 @@ import { useCallback } from 'react';
 import {
   useAnimatedStyle,
   useSharedValue,
+  withRepeat,
+  withSequence,
   withSpring,
   withTiming,
   type SharedValue,
@@ -20,6 +22,31 @@ export function springTo(sv: SharedValue<number>, to: number, playful = false) {
 
 export function fadeTo(sv: SharedValue<number>, to: number, duration = theme.motion.durationFast) {
   sv.value = withTiming(to, { duration });
+}
+
+/** Pop: brief overshoot then settle — tab icons, PlayDisc toggle pulse. */
+export function popTo(sv: SharedValue<number>) {
+  sv.value = withSequence(
+    withSpring(1.18, theme.motion.springPlayful),
+    withSpring(1, theme.motion.springUI),
+  );
+}
+
+/** Endless skeleton pulse: opacity 0.35 ↔ 0.7 on a 1.4 s loop. Never a loop on taps. */
+export function pulseOpacity(sv: SharedValue<number>) {
+  sv.value = withRepeat(
+    withSequence(
+      withTiming(0.35, { duration: 700 }),
+      withTiming(0.7, { duration: 700 }),
+    ),
+    -1,
+    false,
+  );
+}
+
+/** Stagger delay for list items: 40 ms/item, capped at the first 8. */
+export function staggerDelay(index: number): number {
+  return Math.min(index, 7) * theme.motion.stagger;
 }
 
 /** Press-scale behaviour for tappable surfaces: 0.97 on press-in, spring back. */
