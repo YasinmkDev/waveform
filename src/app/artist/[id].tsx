@@ -75,7 +75,7 @@ export default function ArtistScreen() {
             style={[styles.followBtn, following && styles.followBtnOn]}
             accessibilityRole="button"
           >
-            <Text style={[styles.followText, following && { color: theme.colors.accent }]}>
+            <Text style={[styles.followText, following && { color: theme.colors.text }]}>
               {following ? 'Following' : 'Follow'}
             </Text>
           </PressableScale>
@@ -135,8 +135,8 @@ const styles = StyleSheet.create({
   missing: { flex: 1, backgroundColor: theme.colors.canvas, justifyContent: 'center' },
   hero: { paddingHorizontal: theme.spacing.lg, alignItems: 'flex-start' },
   iconBtn: { width: 44, height: 44, alignItems: 'center', justifyContent: 'center' },
-  heroImg: { width: 168, height: 168, borderRadius: 84, alignSelf: 'center', marginVertical: theme.spacing.md },
-  name: { color: theme.colors.text, fontSize: 28, fontWeight: theme.fontWeight.extrabold, alignSelf: 'center' },
+  heroImg: { width: theme.layout.artworkArtistHero, height: theme.layout.artworkArtistHero, borderRadius: theme.layout.artworkArtistHero / 2, alignSelf: 'center', marginVertical: theme.spacing.md },
+  name: { color: theme.colors.text, fontSize: theme.fontSize.display, fontWeight: theme.fontWeight.extrabold, alignSelf: 'center', letterSpacing: -0.5, lineHeight: 36 },
   listeners: { color: theme.colors.textSecondary, fontSize: theme.fontSize.small, alignSelf: 'center', marginTop: 4 },
   bio: { color: theme.colors.textSecondary, fontSize: theme.fontSize.small, lineHeight: 19, marginTop: theme.spacing.md },
   actionRow: {
@@ -148,14 +148,17 @@ const styles = StyleSheet.create({
     marginTop: theme.spacing.lg,
   },
   followBtn: {
-    borderWidth: 1,
-    borderColor: theme.colors.borderStrong,
+    backgroundColor: theme.colors.text,
     borderRadius: theme.radii.pill,
     paddingHorizontal: 20,
     paddingVertical: 9,
   },
-  followBtnOn: { borderColor: theme.colors.accent },
-  followText: { color: theme.colors.text, fontWeight: theme.fontWeight.bold, fontSize: theme.fontSize.small },
+  followBtnOn: {
+    backgroundColor: theme.colors.surfaceAlt,
+    borderWidth: 1,
+    borderColor: theme.colors.borderStrong,
+  },
+  followText: { color: theme.colors.onAccent, fontWeight: theme.fontWeight.bold, fontSize: theme.fontSize.small },
   section: {
     color: theme.colors.text,
     fontSize: theme.fontSize.section,

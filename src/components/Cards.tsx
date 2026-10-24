@@ -98,15 +98,15 @@ const styles = StyleSheet.create({
     backgroundColor: theme.colors.surfaceAlt,
     borderRadius: theme.radii.md,
     overflow: 'hidden',
-    minHeight: 56,
+    minHeight: theme.layout.artworkMd,
   },
   tileInner: {
     flex: 1,
     flexDirection: 'row',
     alignItems: 'center',
-    minHeight: 56,
+    minHeight: theme.layout.artworkMd,
   },
-  tileArt: { width: 56, height: 56 },
+  tileArt: { width: theme.layout.artworkMd, height: theme.layout.artworkMd },
   tileTitle: {
     flex: 1,
     color: theme.colors.text,

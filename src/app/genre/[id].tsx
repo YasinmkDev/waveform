@@ -100,10 +100,10 @@ export default function GenreScreen() {
 const styles = StyleSheet.create({
   root: { flex: 1, backgroundColor: theme.colors.canvas },
   missing: { flex: 1, backgroundColor: theme.colors.canvas, justifyContent: 'center' },
-  hero: { paddingHorizontal: theme.spacing.lg, paddingBottom: theme.spacing.xxl, minHeight: 170, justifyContent: 'space-between' },
+  hero: { paddingHorizontal: theme.spacing.lg, paddingBottom: theme.spacing.xxxl, minHeight: 170, justifyContent: 'space-between' },
   heroBottom: { flexDirection: 'row', alignItems: 'flex-end', justifyContent: 'space-between', gap: theme.spacing.md },
   iconBtn: { width: 44, height: 44, alignItems: 'center', justifyContent: 'center' },
-  name: { color: '#fff', fontSize: 30, fontWeight: theme.fontWeight.extrabold },
+  name: { color: '#fff', fontSize: theme.fontSize.displayXl, fontWeight: theme.fontWeight.extrabold, letterSpacing: -0.5, lineHeight: 38 },
   section: {
     color: theme.colors.text,
     fontSize: theme.fontSize.section,

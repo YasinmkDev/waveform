@@ -234,7 +234,7 @@ export default function PlayerScreen() {
         <PressableScale style={styles.iconBtn} onPress={prev} accessibilityLabel="Previous track">
           <SkipBack size={34} color={theme.colors.text} fill={theme.colors.text} />
         </PressableScale>
-        <PlayDisc light size={theme.layout.playDiscLg} isPlaying={isPlaying} isBuffering={isBuffering} onPress={togglePlay} />
+        <PlayDisc light size={theme.layout.playDiscXl} isPlaying={isPlaying} isBuffering={isBuffering} onPress={togglePlay} />
         <PressableScale style={styles.iconBtn} onPress={() => next(true)} accessibilityLabel="Next track">
           <SkipForward size={34} color={theme.colors.text} fill={theme.colors.text} />
         </PressableScale>
@@ -304,11 +304,11 @@ const styles = StyleSheet.create({
   },
   headerTitle: { color: theme.colors.text, fontSize: theme.fontSize.small, fontWeight: theme.fontWeight.semibold },
   iconBtn: { width: 44, height: 44, alignItems: 'center', justifyContent: 'center' },
-  artWrap: { alignSelf: 'center', width: '100%', maxWidth: 380, aspectRatio: 1, marginVertical: theme.spacing.xl },
-  artwork: { width: '100%', height: '100%', borderRadius: theme.radii.md },
+  artWrap: { alignSelf: 'center', width: '100%', aspectRatio: 1, marginVertical: theme.spacing.xl },
+  artwork: { width: '100%', height: '100%', borderRadius: theme.radii.lg },
   trackRow: { flexDirection: 'row', alignItems: 'center', gap: theme.spacing.xs },
   trackMeta: { flex: 1, minWidth: 0, gap: 2 },
-  trackTitle: { color: theme.colors.text, fontSize: theme.fontSize.section, fontWeight: theme.fontWeight.bold },
+  trackTitle: { color: theme.colors.text, fontSize: theme.fontSize.stat, fontWeight: theme.fontWeight.extrabold, letterSpacing: -0.5 },
   trackArtist: { color: theme.colors.textSecondary, fontSize: theme.fontSize.body },
   seekWrap: { marginTop: theme.spacing.lg },
   seekHit: { paddingVertical: 10, justifyContent: 'center' },
@@ -325,7 +325,7 @@ const styles = StyleSheet.create({
   seekThumbIdle: { width: 0, height: 0 },
   seekTimes: { flexDirection: 'row', justifyContent: 'space-between', marginTop: 2 },
   time: { color: theme.colors.textSecondary, fontSize: theme.fontSize.caption, fontVariant: ['tabular-nums'] },
-  transport: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginTop: theme.spacing.md },
+  transport: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginTop: theme.spacing.lg },
   dot: {
     position: 'absolute',
     bottom: 4,

@@ -119,6 +119,8 @@ const styles = StyleSheet.create({
     borderRadius: theme.radii.md,
     paddingHorizontal: theme.spacing.sm,
     overflow: 'hidden',
+    borderWidth: 1,
+    borderColor: theme.colors.border,
   },
   progressTrack: {
     position: 'absolute',

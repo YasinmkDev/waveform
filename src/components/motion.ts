@@ -92,6 +92,18 @@ export function staggerDelay(index: number): number {
   return Math.min(index, 7) * theme.motion.stagger;
 }
 
+/** Collection hero parallax (worklet): scale 1 → 1.08 + slight fade across
+ *  scroll 0 → 300. Call inside useAnimatedStyle; Reduced Motion renders
+ *  plain (the caller skips this style entirely when reduced). */
+export function parallaxArt(scrollY: SharedValue<number>) {
+  'worklet';
+  const t = Math.min(Math.max(scrollY.value / 300, 0), 1);
+  return {
+    transform: [{ scale: 1 + t * 0.08 }],
+    opacity: 1 - t * 0.15,
+  };
+}
+
 /** Press-scale behaviour for tappable surfaces: 0.97 on press-in, spring back. */
 export function usePressScale(target = theme.motion.pressScale) {
   const scale = useSharedValue(1);

@@ -3,7 +3,7 @@ import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { Image } from 'expo-image';
 import { router } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { Bell, Settings, X } from 'lucide-react-native';
+import { Bell, Flame, Settings, X } from 'lucide-react-native';
 import Animated, { FadeInDown, FadeOut, LinearTransition } from 'react-native-reanimated';
 
 import { ArtistCard, ResumeTile, SquareCard } from '../../components/Cards';
@@ -152,6 +152,7 @@ export default function HomeScreen() {
                 if (weeklyIds.length) playContext(weeklyIds, 0, weekly.title);
               }}
             >
+              <Flame size={20} color={theme.colors.warning} />
               <Text style={styles.streakText}>
                 Your {streak}-day listening streak is alive — one song keeps it going.
               </Text>
@@ -317,7 +318,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: theme.spacing.lg,
     paddingTop: theme.spacing.sm,
   },
-  greeting: { color: theme.colors.text, fontSize: theme.fontSize.title, fontWeight: theme.fontWeight.extrabold },
+  greeting: { color: theme.colors.text, fontSize: theme.fontSize.headline, fontWeight: theme.fontWeight.extrabold, letterSpacing: -0.5 },
   headerIcons: { flexDirection: 'row', alignItems: 'center', gap: theme.spacing.xs },
   iconBtn: { width: 42, height: 42, alignItems: 'center', justifyContent: 'center' },
   bellDot: {
@@ -353,9 +354,11 @@ const styles = StyleSheet.create({
     marginTop: theme.spacing.lg,
     backgroundColor: theme.colors.surface,
     borderRadius: theme.radii.lg,
-    padding: theme.spacing.md,
+    padding: theme.spacing.lg,
+    borderWidth: 1,
+    borderColor: theme.colors.border,
   },
-  heroArt: { width: 76, height: 76, borderRadius: theme.radii.md },
+  heroArt: { width: theme.layout.artworkHomeHero, height: theme.layout.artworkHomeHero, borderRadius: theme.radii.md },
   heroMeta: { flex: 1, minWidth: 0, gap: 2 },
   kicker: {
     color: theme.colors.accent,
@@ -363,7 +366,7 @@ const styles = StyleSheet.create({
     fontWeight: theme.fontWeight.bold,
     letterSpacing: 0.8,
   },
-  heroTitle: { color: theme.colors.text, fontSize: theme.fontSize.section, fontWeight: theme.fontWeight.extrabold },
+  heroTitle: { color: theme.colors.text, fontSize: theme.fontSize.title, fontWeight: theme.fontWeight.extrabold },
   heroSub: { color: theme.colors.textSecondary, fontSize: theme.fontSize.caption, lineHeight: 16 },
   streakCard: {
     flexDirection: 'row',
@@ -373,7 +376,9 @@ const styles = StyleSheet.create({
     marginTop: theme.spacing.md,
     backgroundColor: theme.colors.surfaceAlt,
     borderRadius: theme.radii.lg,
-    padding: theme.spacing.md,
+    padding: theme.spacing.lg,
+    borderWidth: 1,
+    borderColor: theme.colors.border,
   },
   streakText: { flex: 1, color: theme.colors.text, fontSize: theme.fontSize.small, lineHeight: 18 },
   streakCta: { color: theme.colors.accent, fontWeight: theme.fontWeight.extrabold, fontSize: theme.fontSize.body },
@@ -392,6 +397,8 @@ const styles = StyleSheet.create({
     borderRadius: theme.radii.lg,
     padding: theme.spacing.lg,
     gap: 4,
+    borderWidth: 1,
+    borderColor: theme.colors.border,
   },
   coldTitle: { color: theme.colors.text, fontSize: theme.fontSize.section, fontWeight: theme.fontWeight.bold },
   adCard: {
@@ -402,6 +409,8 @@ const styles = StyleSheet.create({
     backgroundColor: theme.colors.surfaceAlt,
     borderRadius: theme.radii.lg,
     padding: theme.spacing.lg,
+    borderWidth: 1,
+    borderColor: theme.colors.border,
   },
   adTag: { color: theme.colors.textTertiary, fontSize: 10, fontWeight: theme.fontWeight.bold, letterSpacing: 1 },
   adTitle: { color: theme.colors.text, fontSize: theme.fontSize.body, fontWeight: theme.fontWeight.bold, marginTop: 4 },

@@ -1,10 +1,11 @@
 import { useState, type ReactNode } from 'react';
-import { ScrollView, StyleSheet, Text, View } from 'react-native';
+import { StyleSheet, Text, View } from 'react-native';
 import { Image } from 'expo-image';
 import { router } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { ArrowDownAZ, ArrowLeft, Check, Download, Heart, Shuffle } from 'lucide-react-native';
-import Animated, { FadeIn, useReducedMotion, ZoomIn } from 'react-native-reanimated';
+import Animated, { FadeIn, useAnimatedScrollHandler, useAnimatedStyle, useReducedMotion, useSharedValue, ZoomIn } from 'react-native-reanimated';
+import { runOnJS } from 'react-native-worklets';
 
 import { art, totalDuration, tracksOf } from '../data/catalog';
 import { useLibraryStore } from '../store/library';
@@ -14,6 +15,7 @@ import { theme } from '../theme';
 import { PlayDisc } from './PlayDisc';
 import { formatDuration, TrackRow } from './TrackRow';
 import { EmptyState, PressableScale, StaggerItem } from './ui';
+import { parallaxArt } from './motion';
 
 /**
  * Shared detail layout for playlists and albums (PLAN §6.4): centered
@@ -73,6 +75,22 @@ export function CollectionView({
   // by title — a real reorder, layout-animated by the row wrappers below.
   const [sort, setSort] = useState<'recents' | 'az'>('recents');
   const reduced = useReducedMotion();
+  // Hero parallax: scrollY drives scale + fade in the module-level worklet.
+  // The sticky compact header keeps its exact behavior — the threshold
+  // check just moves into the scroll handler (fires only on crossings).
+  const scrollY = useSharedValue(0);
+  const lastCompact = useSharedValue(false);
+  const onScroll = useAnimatedScrollHandler({
+    onScroll: (e) => {
+      scrollY.value = e.contentOffset.y;
+      const c = e.contentOffset.y > 300;
+      if (c !== lastCompact.value) {
+        lastCompact.value = c;
+        runOnJS(setCompact)(c);
+      }
+    },
+  });
+  const heroArtStyle = useAnimatedStyle(() => (reduced ? {} : parallaxArt(scrollY)));
   const shownTracks =
     sort === 'az' ? [...tracks].sort((a, b) => a.title.localeCompare(b.title)) : tracks;
   // Row taps play in the order currently shown, so A–Z playback follows A–Z.
@@ -108,9 +126,9 @@ export function CollectionView({
         </Animated.View>
       ) : null}
 
-      <ScrollView
-        onScroll={(e) => setCompact(e.nativeEvent.contentOffset.y > 300)}
-        scrollEventThrottle={32}
+      <Animated.ScrollView
+        onScroll={onScroll}
+        scrollEventThrottle={16}
         contentContainerStyle={{ paddingBottom: 140 }}
       >
         <View style={[styles.hero, { paddingTop: insets.top + theme.spacing.md }]}>
@@ -120,7 +138,9 @@ export function CollectionView({
             </PressableScale>
             {headerExtra}
           </View>
-          <Image source={art(coverKey)} style={styles.heroArt} contentFit="cover" />
+          <Animated.View style={[styles.heroArtWrap, heroArtStyle]}>
+            <Image source={art(coverKey)} style={styles.heroArt} contentFit="cover" />
+          </Animated.View>
           <Text style={styles.title}>{title}</Text>
           <Text style={styles.subtitle} numberOfLines={2}>
             {subtitle}
@@ -180,7 +200,7 @@ export function CollectionView({
               </PressableScale>
             ) : null}
           </View>
-          <PlayDisc isPlaying={isThisContext && isPlaying} onPress={onPlay} />
+          <PlayDisc size={theme.layout.playDiscLg} isPlaying={isThisContext && isPlaying} onPress={onPlay} />
         </View>
 
         {tracks.length === 0 ? (
@@ -210,7 +230,7 @@ export function CollectionView({
             {tracks.map((t) => formatDuration(t.duration)).length} tracks · {metaLine.split('·')[1]?.trim() ?? ''}
           </Text>
         ) : null}
-      </ScrollView>
+      </Animated.ScrollView>
     </View>
   );
 }
@@ -234,15 +254,14 @@ const styles = StyleSheet.create({
   compactTitle: { flex: 1, color: theme.colors.text, fontSize: theme.fontSize.body, fontWeight: theme.fontWeight.bold },
   hero: { paddingHorizontal: theme.spacing.lg },
   heroTopRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', minHeight: 44 },
+  heroArtWrap: { alignSelf: 'center', marginVertical: theme.spacing.lg },
   heroArt: {
     width: theme.layout.artworkHero,
     height: theme.layout.artworkHero,
     borderRadius: theme.radii.md,
-    alignSelf: 'center',
-    marginVertical: theme.spacing.lg,
   },
-  title: { color: theme.colors.text, fontSize: theme.fontSize.title, fontWeight: theme.fontWeight.extrabold },
-  subtitle: { color: theme.colors.textSecondary, fontSize: theme.fontSize.small, marginTop: 4, lineHeight: 18 },
+  title: { color: theme.colors.text, fontSize: theme.fontSize.headline, fontWeight: theme.fontWeight.extrabold, letterSpacing: -0.5 },
+  subtitle: { color: theme.colors.textSecondary, fontSize: theme.fontSize.body, marginTop: 4, lineHeight: 21 },
   meta: { color: theme.colors.textSecondary, fontSize: theme.fontSize.caption, marginTop: 6 },
   actionRow: {
     flexDirection: 'row',
@@ -250,6 +269,8 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     paddingHorizontal: theme.spacing.lg,
     paddingVertical: theme.spacing.md,
+    borderBottomWidth: 1,
+    borderBottomColor: theme.colors.border,
   },
   actionLeft: { flexDirection: 'row', alignItems: 'center', gap: theme.spacing.xs },
   sortBtn: { flexDirection: 'row', alignItems: 'center', gap: 6, paddingVertical: 6, paddingHorizontal: 4 },
