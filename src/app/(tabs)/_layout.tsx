@@ -50,7 +50,7 @@ export default function TabsLayout() {
             height: theme.layout.tabBarHeight,
           },
           tabBarActiveTintColor: theme.colors.text,
-          tabBarInactiveTintColor: theme.colors.textTertiary,
+          tabBarInactiveTintColor: theme.colors.textSecondary,
           tabBarLabel: ({ focused, color, children }) => (
             <Animated.Text
               key={String(focused)}

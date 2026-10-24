@@ -3,7 +3,7 @@ import { Alert, ScrollView, StyleSheet, Text, TextInput, View } from 'react-nati
 import { Image } from 'expo-image';
 import { router } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { ArrowDownAZ, LayoutGrid, List, MoreHorizontal, Pin, Plus, Search, X } from 'lucide-react-native';
+import { ArrowDownAZ, LayoutGrid, Library, List, MoreHorizontal, Pin, Plus, Search, X } from 'lucide-react-native';
 
 import { ArtistCard, SquareCard } from '../../components/Cards';
 import { SheetRow, SheetShell } from '../../components/sheets';
@@ -202,6 +202,7 @@ export default function LibraryScreen() {
       <ScrollView contentContainerStyle={{ paddingBottom: hasTrack ? 150 : 96 }}>
         {filtered.length === 0 ? (
           <EmptyState
+            icon={<Library size={40} color={theme.colors.textTertiary} />}
             title={query ? 'No matches in your library' : 'Start building your library'}
             body={
               query

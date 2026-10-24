@@ -109,6 +109,7 @@ export default function SearchScreen() {
           </>
         ) : nothing ? (
           <EmptyState
+            icon={<SearchIcon size={40} color={theme.colors.textTertiary} />}
             title={`No results for "${query.trim()}"`}
             body="Check the spelling, or try an artist, song or album name from the catalog."
           />

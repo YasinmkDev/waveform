@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useEffect, type ReactNode } from 'react';
 import { Pressable, StyleSheet, Text, View, type StyleProp, type ViewStyle } from 'react-native';
 import Animated, {
   FadeIn,
@@ -138,14 +138,18 @@ export function EmptyState({
   body,
   ctaLabel,
   onCta,
+  icon,
 }: {
   title: string;
   body: string;
   ctaLabel?: string;
   onCta?: () => void;
+  /** Optional large icon above the title (callers size + tint it). */
+  icon?: ReactNode;
 }) {
   return (
     <View style={styles.empty}>
+      {icon ? <View style={styles.emptyIcon}>{icon}</View> : null}
       <Text style={styles.emptyTitle}>{title}</Text>
       <Text style={styles.emptyBody}>{body}</Text>
       {ctaLabel && onCta ? (
@@ -232,6 +236,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: theme.spacing.xxl,
     gap: theme.spacing.sm,
   },
+  emptyIcon: { marginBottom: theme.spacing.sm },
   emptyTitle: {
     color: theme.colors.text,
     fontSize: theme.fontSize.section,

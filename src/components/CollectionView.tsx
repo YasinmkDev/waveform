@@ -3,7 +3,7 @@ import { StyleSheet, Text, View } from 'react-native';
 import { Image } from 'expo-image';
 import { router } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { ArrowDownAZ, ArrowLeft, Check, Download, Heart, Shuffle } from 'lucide-react-native';
+import { ArrowDownAZ, ArrowLeft, Check, Download, Heart, Music2, Shuffle } from 'lucide-react-native';
 import Animated, { FadeIn, useAnimatedScrollHandler, useAnimatedStyle, useReducedMotion, useSharedValue, ZoomIn } from 'react-native-reanimated';
 import { runOnJS } from 'react-native-worklets';
 
@@ -205,6 +205,7 @@ export function CollectionView({
 
         {tracks.length === 0 ? (
           <EmptyState
+            icon={<Music2 size={40} color={theme.colors.textTertiary} />}
             title="Nothing here yet"
             body="Add songs and they will line up here, ready to play."
             ctaLabel={emptyCta?.label}

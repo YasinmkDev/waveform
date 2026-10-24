@@ -482,3 +482,89 @@ wired. Commits on master, all pushed to github.com/YasinmkDev/waveform:
 
 **Gates at the end of this build:** `npx tsc --noEmit` clean (exit 0) ·
 `npx eslint .` clean (exit 0) · `npx expo-doctor` 21/21.
+
+## Build record (2026-10-24) — UI polish: the "wow" pass (UI_POLISH_SCOPE.md)
+
+Visual polish only — the motion system, behavior, copy (except type sizes),
+navigation and IA are untouched, except the CollectionView hero parallax below.
+Scope file committed in the same push (UI_POLISH_SCOPE.md).
+
+- `21c25af` Tokens — type scale: section 20→22, new stat 28 / headline 32 /
+  display 34 / displayXl 36 / hero 44 (the old display 32 was unused in src, so
+  repurposing it to 34 breaks nothing); layout tokens for the new art sizes
+  (hero 264, home hero 96, artist hero 192, top-result 80, library row 56,
+  history 48, genre tile 120, genre motif 88, search field 52, month card 320,
+  player disc 72). Chip system: selected chip is now WHITE bg + BLACK text on
+  Home/Search/Library — green is reserved for actions + live state, so it pops
+  harder. All named orphans consolidated; see judgment calls below.
+- `3259cc1` Home / Now Playing / detail — greeting 32 extrabold tight; Weekly
+  Mix hero art 96, title 24, lg padding + hairline border; resume tiles 64;
+  streak card gains a Flame icon + border; cold/ad cards gain borders;
+  MiniPlayer gains the hairline border; player art fills full width (380 cap
+  dropped, radius lg), title 28 extrabold tight, transport spacing widened,
+  disc 72; collection hero art 264, title 32, subtitle body, hairline divider
+  under the action row, disc 64, scroll parallax (scale 1→1.08 + fade across
+  0→300 via a module-level `parallaxArt` worklet in motion.ts, Animated
+  scroll handler; sticky compact header threshold logic moved into the same
+  handler and fires only on crossings — behavior unchanged; Reduced Motion
+  renders the hero plain); artist name 34 tight, circle hero 192, Follow is now
+  solid white + black text when not following, outlined surfaceAlt when
+  following (toggle behavior identical); genre name 36 tight, hero block taller
+  via xxxl bottom padding.
+- `756fc0e` Search / Library / Profile / Premium / Onboarding / Settings /
+  Queue — search title 32, field 52, genre tiles 120 with section-bold names
+  and a larger motif, top-result art 80 / name 24 / lg padding + border;
+  library title 32, row art 56 (circle radius follows the token), row titles
+  semibold; profile name 32, stat numbers 28 tabular extrabold, stats card
+  xl padding + border, month card 320 with the hero token, history art 48;
+  premium headline 34 tight, prices 28, done title 28, selected plan cards
+  gain an accent check (borders were already there); onboarding title 32,
+  build title 28, taste bubbles follow the white-selected system (genre chips
+  white fill + black text, artist ring white, check badge white);
+  settings + queue header titles to the section token (create-playlist title
+  was already section — now 22).
+- `TBD` Empty states + tab bar — EmptyState gains an optional icon prop
+  (large, textTertiary, above the title); used on search-empty (Search),
+  library-empty (Library) and collection-empty (Music2); tab bar inactive tint
+  textTertiary→textSecondary for readability.
+
+**Scope judgment calls (deviations, all deliberate):**
+- Genre name uses the new displayXl 36 token (scope item 5 says 36) rather than
+  the display 34 token named in the token section — 36 is its own step.
+- Premium price uses stat 28 (scope item 9 says 28), not the section token the
+  token section loosely suggested.
+- Artist ring + check badge go white (not just the genre chips): the scope's
+  "taste bubbles follow the new chip system (selected white)" covers both
+  pickers; the build-success circle stays accent green (a success state, not
+  a selection).
+- Genre "motif larger" landed on the Search genre tiles (the only motif in
+  the app — the genre screen itself has no motif element); the genre hero
+  grows via padding + the 36 name instead of a magic minHeight.
+- Left as-is (pre-existing, not named in the scope): avatar glyph sizes
+  (Home 14, profile 34), the create-playlist name input at 30, the shelf card
+  size 152 and the two-column library grid at 150 — the scope calls the
+  grid rhythm right.
+- No borders were added to any list/row surface — hairlines live on cards
+  and containers only, per the scope.
+
+**Design Mastery Part 8 audit (2026-10-24): PASS.**
+- Token discipline: every changed size/color/spacing reads from theme.ts;
+  grep confirms no new magic font sizes in screens (remaining numerics are
+  the pre-existing avatar glyphs and the create-playlist input, noted above).
+- One accent intact: green appears only on PlayDiscs, live state, Premium
+  marks and the unchanged success states — selected chips, Follow and taste
+  pickers are now white, which makes the green louder, not weaker.
+- No gradients, glow, glass/blur, neon or shadow stacks added (grep-verified;
+  the only shadow in src is the pre-existing PlayDisc disc shadow).
+- Shape code intact (square = content, circle = artist, now at larger hero
+  scale); no dead controls — every touched control keeps its exact behavior;
+  no copy changed except type sizes; no IA or navigation change.
+- Reduced Motion: the only new animation is the hero parallax, and it renders
+  plain when reduced; the compact header threshold is unchanged.
+- Thank-you test: nothing here asks more of the user — bigger art and type,
+  clearer hierarchy, same taps.
+- Note: NOT verified on a physical device in this build — no tunnel or dev
+  server was started (per task: delivery is the parent's job). The parent
+  should smoke-test on Expo Go: collection hero parallax + sticky header
+  interplay, Follow pill states, white selected chips across Home/Search/
+  Library, and the premium selected-check placement on both plan cards.
