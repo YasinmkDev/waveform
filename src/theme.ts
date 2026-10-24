@@ -29,9 +29,18 @@ export const theme = {
     caption: 12,
     small: 13,
     body: 15,
-    section: 20,
+    section: 22,
     title: 24,
-    display: 32,
+    /** Stat numbers, prices, player title (was a 20/22/26 orphan spread). */
+    stat: 28,
+    /** Screen titles + profile name (the old display value, kept as its own step). */
+    headline: 32,
+    /** Display titles: artist name, premium headline. Tight tracking applied at use. */
+    display: 34,
+    /** Genre hero name. */
+    displayXl: 36,
+    /** Month-in-Music big number. Tight tracking applied at use. */
+    hero: 44,
   },
   fontWeight: {
     regular: '400' as const,
@@ -46,10 +55,30 @@ export const theme = {
     artworkSm: 48,
     artworkMd: 64,
     artworkLg: 152,
-    artworkHero: 232,
+    artworkHero: 264,
     shelfCard: 152,
     playDisc: 56,
     playDiscLg: 64,
+    /** Now Playing disc (was 64, now the stage's loudest control). */
+    playDiscXl: 72,
+    /** Home Weekly Mix hero art. */
+    artworkHomeHero: 96,
+    /** Artist circle hero. */
+    artworkArtistHero: 192,
+    /** Search top-result art. */
+    artworkTop: 80,
+    /** Library row art. */
+    artworkRowLg: 56,
+    /** Profile history art. */
+    artworkHistory: 48,
+    /** Search genre tile height. */
+    genreTileHeight: 120,
+    /** Search genre tile motif circle. */
+    genreMotif: 88,
+    /** Search field height. */
+    searchFieldHeight: 52,
+    /** Profile Month-in-Music card height. */
+    monthCardHeight: 320,
   },
   /** Motion tokens (Design Mastery Playbook, Part 6). Springs are Reanimated
    *  values; durations in ms. Bounce only where the gesture carried momentum. */

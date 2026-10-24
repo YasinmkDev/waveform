@@ -223,7 +223,7 @@ const styles = StyleSheet.create({
     paddingVertical: 7,
     borderRadius: theme.radii.pill,
   },
-  chipOn: { backgroundColor: theme.colors.accent },
+  chipOn: { backgroundColor: theme.colors.text },
   chipOff: { backgroundColor: theme.colors.surfaceAlt },
   chipText: { fontSize: theme.fontSize.small, fontWeight: theme.fontWeight.semibold },
   empty: {
