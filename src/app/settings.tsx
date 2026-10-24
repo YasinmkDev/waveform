@@ -1,8 +1,9 @@
-import { Alert, Pressable, ScrollView, StyleSheet, Switch, Text, View } from 'react-native';
+import { Alert, ScrollView, StyleSheet, Switch, Text, View } from 'react-native';
 import { router } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { ArrowLeft, ChevronRight, Crown, Minus, Plus } from 'lucide-react-native';
 
+import { PressableScale, StaggerItem } from '../components/ui';
 import { useHistoryStore } from '../store/history';
 import { useLibraryStore } from '../store/library';
 import { usePlayerStore } from '../store/player';
@@ -46,80 +47,92 @@ export default function SettingsScreen() {
   return (
     <SafeAreaView style={styles.safe} edges={['top']}>
       <View style={styles.header}>
-        <Pressable style={styles.iconBtn} onPress={() => router.back()} accessibilityLabel="Back">
+        <PressableScale style={styles.iconBtn} onPress={() => router.back()} accessibilityLabel="Back">
           <ArrowLeft size={24} color={theme.colors.text} />
-        </Pressable>
+        </PressableScale>
         <Text style={styles.headerTitle}>Settings</Text>
         <View style={styles.iconBtn} />
       </View>
 
       <ScrollView contentContainerStyle={{ paddingBottom: 120 }}>
-        <Text style={styles.section}>Plan</Text>
-        <Pressable style={styles.row} onPress={() => router.push('/premium')}>
-          <Crown size={20} color={plan === 'premium' ? theme.colors.accent : theme.colors.textSecondary} />
-          <View style={{ flex: 1 }}>
-            <Text style={styles.rowTitle}>{plan === 'premium' ? 'Waveform Premium' : 'Free plan'}</Text>
-            <Text style={styles.rowSub}>{plan === 'premium' ? 'All demo benefits active' : 'See what Premium adds'}</Text>
-          </View>
-          <ChevronRight size={20} color={theme.colors.textTertiary} />
-        </Pressable>
+        <StaggerItem index={0}>
+          <Text style={styles.section}>Plan</Text>
+          <PressableScale style={styles.row} onPress={() => router.push('/premium')}>
+            <Crown size={20} color={plan === 'premium' ? theme.colors.accent : theme.colors.textSecondary} />
+            <View style={{ flex: 1 }}>
+              <Text style={styles.rowTitle}>{plan === 'premium' ? 'Waveform Premium' : 'Free plan'}</Text>
+              <Text style={styles.rowSub}>{plan === 'premium' ? 'All demo benefits active' : 'See what Premium adds'}</Text>
+            </View>
+            <ChevronRight size={20} color={theme.colors.textTertiary} />
+          </PressableScale>
+        </StaggerItem>
 
-        <Text style={styles.section}>Playback</Text>
-        <View style={styles.row}>
-          <View style={{ flex: 1 }}>
-            <Text style={styles.rowTitle}>Crossfade</Text>
-            <Text style={styles.rowSub}>
-              Fade between tracks{plan !== 'premium' ? ' · up to 2s on Free, 6s on Premium' : ''}
+        <StaggerItem index={1}>
+          <Text style={styles.section}>Playback</Text>
+          <View style={styles.row}>
+            <View style={{ flex: 1 }}>
+              <Text style={styles.rowTitle}>Crossfade</Text>
+              <Text style={styles.rowSub}>
+                Fade between tracks{plan !== 'premium' ? ' · up to 2s on Free, 6s on Premium' : ''}
+              </Text>
+            </View>
+            <View style={styles.stepper}>
+              <PressableScale
+                style={styles.stepBtn}
+                scale={0.9}
+                onPress={() => setCrossfade(Math.max(0, crossfade - 1))}
+                accessibilityLabel="Less crossfade"
+              >
+                <Minus size={16} color={theme.colors.text} />
+              </PressableScale>
+              <Text style={styles.stepVal}>{crossfade}s</Text>
+              <PressableScale
+                style={styles.stepBtn}
+                scale={0.9}
+                onPress={() => setCrossfade(Math.min(plan === 'premium' ? 6 : 2, crossfade + 1))}
+                accessibilityLabel="More crossfade"
+              >
+                <Plus size={16} color={theme.colors.text} />
+              </PressableScale>
+            </View>
+          </View>
+        </StaggerItem>
+
+        <StaggerItem index={2}>
+          <Text style={styles.section}>Reminders (in-app)</Text>
+          <View style={styles.row}>
+            <View style={{ flex: 1 }}>
+              <Text style={styles.rowTitle}>Weekly Mix drop</Text>
+              <Text style={styles.rowSub}>Bell dot and hero card when your mix refreshes</Text>
+            </View>
+            <Switch value={notifWeekly} onValueChange={setNotifWeekly} trackColor={{ true: theme.colors.accent }} />
+          </View>
+          <View style={styles.row}>
+            <View style={{ flex: 1 }}>
+              <Text style={styles.rowTitle}>New release alerts</Text>
+              <Text style={styles.rowSub}>Controls the “New releases for you” shelf on Home</Text>
+            </View>
+            <Switch value={notifReleases} onValueChange={setNotifReleases} trackColor={{ true: theme.colors.accent }} />
+          </View>
+        </StaggerItem>
+
+        <StaggerItem index={3}>
+          <Text style={styles.section}>About</Text>
+          <View style={styles.aboutBox}>
+            <Text style={styles.aboutText}>
+              Waveform is a portfolio study of the Spotify product system — original code, an original sample catalog, and no
+              affiliation with Spotify. Music: SoundHelix example songs (T. Schürger). Artwork: generated in-project. Artist
+              listener and play counts are sample editorial data.
             </Text>
+            <Text style={styles.aboutMeta}>Version 1.0.0 · Expo SDK 57</Text>
           </View>
-          <View style={styles.stepper}>
-            <Pressable
-              style={styles.stepBtn}
-              onPress={() => setCrossfade(Math.max(0, crossfade - 1))}
-              accessibilityLabel="Less crossfade"
-            >
-              <Minus size={16} color={theme.colors.text} />
-            </Pressable>
-            <Text style={styles.stepVal}>{crossfade}s</Text>
-            <Pressable
-              style={styles.stepBtn}
-              onPress={() => setCrossfade(Math.min(plan === 'premium' ? 6 : 2, crossfade + 1))}
-              accessibilityLabel="More crossfade"
-            >
-              <Plus size={16} color={theme.colors.text} />
-            </Pressable>
-          </View>
-        </View>
+        </StaggerItem>
 
-        <Text style={styles.section}>Reminders (in-app)</Text>
-        <View style={styles.row}>
-          <View style={{ flex: 1 }}>
-            <Text style={styles.rowTitle}>Weekly Mix drop</Text>
-            <Text style={styles.rowSub}>Bell dot and hero card when your mix refreshes</Text>
-          </View>
-          <Switch value={notifWeekly} onValueChange={setNotifWeekly} trackColor={{ true: theme.colors.accent }} />
-        </View>
-        <View style={styles.row}>
-          <View style={{ flex: 1 }}>
-            <Text style={styles.rowTitle}>New release alerts</Text>
-            <Text style={styles.rowSub}>Controls the “New releases for you” shelf on Home</Text>
-          </View>
-          <Switch value={notifReleases} onValueChange={setNotifReleases} trackColor={{ true: theme.colors.accent }} />
-        </View>
-
-        <Text style={styles.section}>About</Text>
-        <View style={styles.aboutBox}>
-          <Text style={styles.aboutText}>
-            Waveform is a portfolio study of the Spotify product system — original code, an original sample catalog, and no
-            affiliation with Spotify. Music: SoundHelix example songs (T. Schürger). Artwork: generated in-project. Artist
-            listener and play counts are sample editorial data.
-          </Text>
-          <Text style={styles.aboutMeta}>Version 1.0.0 · Expo SDK 57</Text>
-        </View>
-
-        <Pressable style={styles.resetBtn} onPress={resetAll}>
-          <Text style={styles.resetText}>Reset demo data</Text>
-        </Pressable>
+        <StaggerItem index={4}>
+          <PressableScale style={styles.resetBtn} onPress={resetAll}>
+            <Text style={styles.resetText}>Reset demo data</Text>
+          </PressableScale>
+        </StaggerItem>
       </ScrollView>
     </SafeAreaView>
   );

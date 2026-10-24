@@ -51,6 +51,24 @@ export function artDragReset(tx: SharedValue<number>, sc: SharedValue<number>, r
   rot.value = withSpring(0, theme.motion.springUI);
 }
 
+/** Sheet entrance: spring up + backdrop fade in. */
+export function sheetSlideIn(sheetY: SharedValue<number>, backdrop: SharedValue<number>) {
+  sheetY.value = withSpring(0, theme.motion.springSheet);
+  backdrop.value = withTiming(1, { duration: 180 });
+}
+
+/** Sheet exit: slide down + backdrop fade out. */
+export function sheetSlideOut(sheetY: SharedValue<number>, backdrop: SharedValue<number>) {
+  sheetY.value = withTiming(600, { duration: 250 });
+  backdrop.value = withTiming(0, { duration: 200 });
+}
+
+/** Sheet instant position (Reduced Motion): no animation, just the state. */
+export function sheetSnap(sheetY: SharedValue<number>, backdrop: SharedValue<number>, y: number, o: number) {
+  sheetY.value = y;
+  backdrop.value = o;
+}
+
 /** Pop-from: snap to `from`, then spring to 1 — track-change artwork pop. */
 export function popFrom(sv: SharedValue<number>, from = 0.92) {
   sv.value = from;

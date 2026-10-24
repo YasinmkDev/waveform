@@ -1,10 +1,10 @@
 import { useState, type ReactNode } from 'react';
-import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { ScrollView, StyleSheet, Text, View } from 'react-native';
 import { Image } from 'expo-image';
 import { router } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { ArrowLeft, Check, Download, Heart, Shuffle } from 'lucide-react-native';
-import Animated, { FadeIn } from 'react-native-reanimated';
+import { ArrowDownAZ, ArrowLeft, Check, Download, Heart, Shuffle } from 'lucide-react-native';
+import Animated, { FadeIn, useReducedMotion, ZoomIn } from 'react-native-reanimated';
 
 import { art, totalDuration, tracksOf } from '../data/catalog';
 import { useLibraryStore } from '../store/library';
@@ -13,7 +13,7 @@ import { usePrefsStore } from '../store/prefs';
 import { theme } from '../theme';
 import { PlayDisc } from './PlayDisc';
 import { formatDuration, TrackRow } from './TrackRow';
-import { EmptyState } from './ui';
+import { EmptyState, PressableScale, StaggerItem } from './ui';
 
 /**
  * Shared detail layout for playlists and albums (PLAN §6.4): centered
@@ -69,6 +69,14 @@ export function CollectionView({
   const hours = Math.floor(total / 3600);
   const mins = Math.round((total % 3600) / 60);
   const metaLine = `${tracks.length} songs · ${hours ? `${hours} hr ` : ''}${mins} min`;
+  // Collection sort: Recents keeps the collection's own order, A–Z reorders
+  // by title — a real reorder, layout-animated by the row wrappers below.
+  const [sort, setSort] = useState<'recents' | 'az'>('recents');
+  const reduced = useReducedMotion();
+  const shownTracks =
+    sort === 'az' ? [...tracks].sort((a, b) => a.title.localeCompare(b.title)) : tracks;
+  // Row taps play in the order currently shown, so A–Z playback follows A–Z.
+  const shownTrackIds = shownTracks.map((t) => t.id);
 
   const onPlay = () => {
     if (isThisContext) {
@@ -89,9 +97,9 @@ export function CollectionView({
     <View style={styles.root}>
       {compact ? (
         <Animated.View entering={FadeIn.duration(150)} style={[styles.compact, { paddingTop: insets.top }]}>
-          <Pressable style={styles.iconBtn} onPress={() => router.back()} accessibilityLabel="Back">
+          <PressableScale style={styles.iconBtn} onPress={() => router.back()} accessibilityLabel="Back">
             <ArrowLeft size={24} color={theme.colors.text} />
-          </Pressable>
+          </PressableScale>
           <Image source={art(coverKey)} style={styles.compactArt} contentFit="cover" />
           <Text style={styles.compactTitle} numberOfLines={1}>
             {title}
@@ -107,9 +115,9 @@ export function CollectionView({
       >
         <View style={[styles.hero, { paddingTop: insets.top + theme.spacing.md }]}>
           <View style={styles.heroTopRow}>
-            <Pressable style={styles.iconBtn} onPress={() => router.back()} accessibilityLabel="Back">
+            <PressableScale style={styles.iconBtn} onPress={() => router.back()} accessibilityLabel="Back">
               <ArrowLeft size={24} color={theme.colors.text} />
-            </Pressable>
+            </PressableScale>
             {headerExtra}
           </View>
           <Image source={art(coverKey)} style={styles.heroArt} contentFit="cover" />
@@ -123,7 +131,7 @@ export function CollectionView({
         <View style={styles.actionRow}>
           <View style={styles.actionLeft}>
             {saveKey ? (
-              <Pressable
+              <PressableScale
                 style={styles.iconBtn}
                 onPress={() => togglePin(saveKey)}
                 accessibilityLabel={saved ? 'Remove from Your Library' : 'Save to Your Library'}
@@ -133,10 +141,10 @@ export function CollectionView({
                   color={theme.colors.text}
                   fill={saved ? theme.colors.text : 'transparent'}
                 />
-              </Pressable>
+              </PressableScale>
             ) : null}
             {downloadKey ? (
-              <Pressable
+              <PressableScale
                 style={styles.iconBtn}
                 onPress={() => {
                   // Downloads are a Premium feature (PLAN §6.12) — the gate is real.
@@ -153,12 +161,24 @@ export function CollectionView({
                 ) : (
                   <Download size={24} color={theme.colors.text} />
                 )}
-              </Pressable>
+              </PressableScale>
             ) : null}
-            <Pressable style={styles.iconBtn} onPress={onShuffleToggle} accessibilityLabel="Shuffle play">
+            <PressableScale style={styles.iconBtn} onPress={onShuffleToggle} accessibilityLabel="Shuffle play">
               <Shuffle size={22} color={shuffleOn ? theme.colors.accent : theme.colors.textSecondary} />
-              {shuffleOn ? <View style={styles.dot} /> : null}
-            </Pressable>
+              {shuffleOn ? (
+                <Animated.View entering={reduced ? undefined : ZoomIn.springify().damping(16)} style={styles.dot} />
+              ) : null}
+            </PressableScale>
+            {tracks.length > 1 ? (
+              <PressableScale
+                style={styles.sortBtn}
+                onPress={() => setSort((s) => (s === 'recents' ? 'az' : 'recents'))}
+                accessibilityLabel="Change track sort"
+              >
+                <ArrowDownAZ size={16} color={theme.colors.text} />
+                <Text style={styles.sortText}>{sort === 'recents' ? 'Recents' : 'A–Z'}</Text>
+              </PressableScale>
+            ) : null}
           </View>
           <PlayDisc isPlaying={isThisContext && isPlaying} onPress={onPlay} />
         </View>
@@ -171,16 +191,17 @@ export function CollectionView({
             onCta={emptyCta?.onPress}
           />
         ) : (
-          tracks.map((t, i) => (
-            <TrackRow
-              key={t.id}
-              track={t}
-              index={i}
-              showIndex
-              contextTracks={trackIds}
-              contextLabel={contextLabel}
-              removablePlaylistId={removablePlaylistId}
-            />
+          shownTracks.map((t, i) => (
+            <StaggerItem key={t.id} index={i} layout>
+              <TrackRow
+                track={t}
+                index={i}
+                showIndex
+                contextTracks={shownTrackIds}
+                contextLabel={contextLabel}
+                removablePlaylistId={removablePlaylistId}
+              />
+            </StaggerItem>
           ))
         )}
         {childrenBottom}
@@ -231,6 +252,8 @@ const styles = StyleSheet.create({
     paddingVertical: theme.spacing.md,
   },
   actionLeft: { flexDirection: 'row', alignItems: 'center', gap: theme.spacing.xs },
+  sortBtn: { flexDirection: 'row', alignItems: 'center', gap: 6, paddingVertical: 6, paddingHorizontal: 4 },
+  sortText: { color: theme.colors.text, fontSize: theme.fontSize.small, fontWeight: theme.fontWeight.semibold },
   iconBtn: { width: 44, height: 44, alignItems: 'center', justifyContent: 'center' },
   dot: { position: 'absolute', bottom: 4, width: 4, height: 4, borderRadius: 2, backgroundColor: theme.colors.accent },
   footerMeta: {

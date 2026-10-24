@@ -1,17 +1,30 @@
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Modal, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
 import { Image } from 'expo-image';
 import { router } from 'expo-router';
 import { Check, Disc3, Heart, ListMusic, ListPlus, Play, Plus, Share2, User, X } from 'lucide-react-native';
-import Animated, { FadeIn, SlideInDown } from 'react-native-reanimated';
+import Animated, {
+  useAnimatedStyle,
+  useReducedMotion,
+  useSharedValue,
+} from 'react-native-reanimated';
 
 import { art, coverOfTrack, getAlbum, getArtist, type Track } from '../data/catalog';
 import { useLibraryStore } from '../store/library';
 import { usePlayerStore } from '../store/player';
 import { useUiStore } from '../store/ui';
+import { sheetSlideIn, sheetSlideOut, sheetSnap } from './motion';
 import { theme } from '../theme';
+import { PressableScale } from './ui';
 
-function SheetShell({
+/**
+ * Spring bottom sheet. Exits are shared-value driven, not `exiting`
+ * props: a Modal unmounts its whole native subtree instantly, so an
+ * exit animation declared on it can never play. Instead the sheet
+ * slides down + the backdrop fades, and only then does onClose fire
+ * (backdrop path) or the Modal unmount (prop-driven path).
+ */
+export function SheetShell({
   visible,
   onClose,
   children,
@@ -20,36 +33,112 @@ function SheetShell({
   onClose: () => void;
   children: React.ReactNode;
 }) {
+  const [mounted, setMounted] = useState(visible);
+  const reduced = useReducedMotion();
+  const sheetY = useSharedValue(600);
+  const backdropOpacity = useSharedValue(0);
+  const exitingRef = useRef(false);
+  const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const sheetStyle = useAnimatedStyle(() => ({ transform: [{ translateY: sheetY.value }] }));
+  const backdropStyle = useAnimatedStyle(() => ({ opacity: backdropOpacity.value }));
+
+  const animateIn = () => {
+    exitingRef.current = false;
+    if (reduced) {
+      sheetSnap(sheetY, backdropOpacity, 0, 1);
+      return;
+    }
+    sheetSlideIn(sheetY, backdropOpacity);
+  };
+
+  const animateOut = (done: () => void) => {
+    if (exitingRef.current) {
+      done();
+      return;
+    }
+    exitingRef.current = true;
+    if (reduced) {
+      done();
+      return;
+    }
+    sheetSlideOut(sheetY, backdropOpacity);
+    timerRef.current = setTimeout(done, 260);
+  };
+
+  // Open: mount, then spring up. The Modal is a native view outside the
+  // React tree, so mounting it must follow the visible prop here.
+  useEffect(() => {
+    if (visible) {
+      if (timerRef.current) clearTimeout(timerRef.current);
+      // eslint-disable-next-line react-hooks/set-state-in-effect -- see above
+      setMounted(true);
+      animateIn();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [visible]);
+
+  // Prop-driven close (e.g. picker opening over the menu): slide out, then unmount.
+  useEffect(() => {
+    if (!visible && mounted) {
+      animateOut(() => setMounted(false));
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [visible, mounted]);
+
+  useEffect(
+    () => () => {
+      if (timerRef.current) clearTimeout(timerRef.current);
+    },
+    [],
+  );
+
+  // Backdrop / hardware-back close: slide out first, then tell the parent.
+  const requestClose = () => animateOut(onClose);
+
+  if (!mounted) return null;
   return (
-    <Modal visible={visible} transparent animationType="none" onRequestClose={onClose}>
-      <Animated.View entering={FadeIn.duration(180)} style={styles.backdrop}>
-        <Pressable style={StyleSheet.absoluteFill} onPress={onClose} accessibilityLabel="Close" />
-        <Animated.View entering={SlideInDown.duration(theme.motion.durationSheet)} style={styles.sheet}>
+    <Modal visible transparent animationType="none" onRequestClose={requestClose}>
+      <View style={styles.backdrop}>
+        <Animated.View style={[StyleSheet.absoluteFill, styles.backdropDim, backdropStyle]}>
+          <Pressable style={StyleSheet.absoluteFill} onPress={requestClose} accessibilityLabel="Close" />
+        </Animated.View>
+        <Animated.View style={[styles.sheet, sheetStyle]}>
           <View style={styles.grabber} />
           {children}
         </Animated.View>
-      </Animated.View>
+      </View>
     </Modal>
   );
 }
 
-function SheetRow({
+export function SheetRow({
   icon,
   label,
   onPress,
   active = false,
+  danger = false,
 }: {
   icon: React.ReactNode;
   label: string;
   onPress: () => void;
   active?: boolean;
+  danger?: boolean;
 }) {
   return (
-    <Pressable onPress={onPress} style={styles.sheetRow} accessibilityRole="button">
+    <PressableScale onPress={onPress} style={styles.sheetRow} accessibilityRole="button">
       {icon}
-      <Text style={[styles.sheetRowText, active && { color: theme.colors.accent }]}>{label}</Text>
+      <Text
+        style={[
+          styles.sheetRowText,
+          active && { color: theme.colors.accent },
+          danger && { color: theme.colors.danger },
+        ]}
+      >
+        {label}
+      </Text>
       {active ? <Check size={18} color={theme.colors.accent} /> : null}
-    </Pressable>
+    </PressableScale>
   );
 }
 
@@ -230,9 +319,9 @@ export function TrackMenu({
 const styles = StyleSheet.create({
   backdrop: {
     flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.6)',
     justifyContent: 'flex-end',
   },
+  backdropDim: { backgroundColor: 'rgba(0,0,0,0.6)' },
   sheet: {
     backgroundColor: theme.colors.surfaceAlt,
     borderTopLeftRadius: theme.radii.xl,

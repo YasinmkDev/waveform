@@ -1,12 +1,13 @@
 import { useEffect, useState } from 'react';
-import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { ScrollView, StyleSheet, Text, View } from 'react-native';
 import { Image } from 'expo-image';
 import { router } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Check } from 'lucide-react-native';
-import Animated, { FadeIn, FadeInDown, FadeInRight, ZoomIn } from 'react-native-reanimated';
+import Animated, { FadeIn, FadeInDown, FadeInRight, LinearTransition, useReducedMotion, ZoomIn } from 'react-native-reanimated';
 
 import { ARTISTS, GENRES, art } from '../data/catalog';
+import { PressableScale } from '../components/ui';
 import { usePrefsStore } from '../store/prefs';
 import { theme } from '../theme';
 
@@ -46,19 +47,25 @@ export default function OnboardingScreen() {
     setArtists((cur) => (cur.includes(id) ? cur.filter((x) => x !== id) : [...cur, id]));
   const toggleGenre = (id: string) =>
     setGenres((cur) => (cur.includes(id) ? cur.filter((x) => x !== id) : [...cur, id]));
+  const reduced = useReducedMotion();
 
   return (
     <SafeAreaView style={styles.safe}>
       <View style={styles.topRow}>
         <View style={styles.segments}>
           {[0, 1, 2].map((i) => (
-            <View key={i} style={[styles.segment, step >= i && styles.segmentOn]} />
+            <Animated.View
+              key={`${i}-${step >= i}`}
+              entering={reduced ? undefined : FadeIn.duration(200)}
+              layout={LinearTransition.springify()}
+              style={[styles.segment, step >= i && styles.segmentOn]}
+            />
           ))}
         </View>
         {!building ? (
-          <Pressable onPress={skip} hitSlop={10}>
+          <PressableScale onPress={skip} hitSlop={10}>
             <Text style={styles.skip}>Skip</Text>
-          </Pressable>
+          </PressableScale>
         ) : null}
       </View>
 
@@ -71,7 +78,7 @@ export default function OnboardingScreen() {
               const selected = artists.includes(a.id);
               return (
                 <Animated.View key={a.id} entering={FadeInDown.delay(i * 45).duration(280)} style={styles.bubbleCell}>
-                  <Pressable onPress={() => toggleArtist(a.id)} accessibilityRole="button" accessibilityState={{ selected }}>
+                  <PressableScale onPress={() => toggleArtist(a.id)} accessibilityRole="button" accessibilityState={{ selected }}>
                     <View style={[styles.bubbleRing, selected && styles.bubbleRingOn]}>
                       <Image source={art(a.image)} style={styles.bubble} contentFit="cover" />
                       {selected ? (
@@ -83,12 +90,12 @@ export default function OnboardingScreen() {
                     <Text style={[styles.bubbleName, selected && { color: theme.colors.text }]} numberOfLines={1}>
                       {a.name}
                     </Text>
-                  </Pressable>
+                  </PressableScale>
                 </Animated.View>
               );
             })}
           </ScrollView>
-          <Pressable
+          <PressableScale
             style={[styles.cta, artists.length < MIN_ARTISTS && styles.ctaOff]}
             disabled={artists.length < MIN_ARTISTS}
             onPress={() => setStep(1)}
@@ -98,7 +105,7 @@ export default function OnboardingScreen() {
                 ? `Pick ${MIN_ARTISTS - artists.length} more`
                 : `Continue · ${artists.length} picked`}
             </Text>
-          </Pressable>
+          </PressableScale>
         </Animated.View>
       ) : null}
 
@@ -111,23 +118,23 @@ export default function OnboardingScreen() {
               const selected = genres.includes(g.id);
               return (
                 <Animated.View key={g.id} entering={FadeInDown.delay(i * 35).duration(240)}>
-                  <Pressable
+                  <PressableScale
                     onPress={() => toggleGenre(g.id)}
                     style={[styles.genreChip, { backgroundColor: selected ? g.color : theme.colors.surfaceAlt }]}
                   >
                     <Text style={styles.genreChipText}>{g.name}</Text>
-                  </Pressable>
+                  </PressableScale>
                 </Animated.View>
               );
             })}
           </View>
           <View style={{ flex: 1 }} />
-          <Pressable style={styles.cta} onPress={() => setBuilding(true)}>
+          <PressableScale style={styles.cta} onPress={() => setBuilding(true)}>
             <Text style={styles.ctaText}>Build my mix</Text>
-          </Pressable>
-          <Pressable onPress={() => setStep(0)} style={styles.backBtn}>
+          </PressableScale>
+          <PressableScale onPress={() => setStep(0)} style={styles.backBtn}>
             <Text style={styles.backText}>Back</Text>
-          </Pressable>
+          </PressableScale>
         </Animated.View>
       ) : null}
 
@@ -150,9 +157,9 @@ export default function OnboardingScreen() {
               </Animated.View>
               <Text style={styles.buildTitle}>Your mix is ready</Text>
               <Text style={styles.sub}>It sharpens every time you listen. Your first play is one tap away.</Text>
-              <Pressable style={[styles.cta, { alignSelf: 'stretch', marginTop: theme.spacing.xxl }]} onPress={finish}>
+              <PressableScale style={[styles.cta, { alignSelf: 'stretch', marginTop: theme.spacing.xxl }]} onPress={finish}>
                 <Text style={styles.ctaText}>Start listening</Text>
-              </Pressable>
+              </PressableScale>
             </>
           )}
         </Animated.View>

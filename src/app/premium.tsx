@@ -1,10 +1,11 @@
 import { useState } from 'react';
-import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { ScrollView, StyleSheet, Text, View } from 'react-native';
 import { router } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Check, X } from 'lucide-react-native';
 import Animated, { ZoomIn } from 'react-native-reanimated';
 
+import { PressableScale, StaggerItem } from '../components/ui';
 import { usePrefsStore } from '../store/prefs';
 import { useUiStore } from '../store/ui';
 import { theme } from '../theme';
@@ -39,9 +40,9 @@ export default function PremiumScreen() {
       <View style={styles.header}>
         <View style={styles.iconBtn} />
         <Text style={styles.headerTitle}>Waveform Premium</Text>
-        <Pressable style={styles.iconBtn} onPress={() => router.back()} accessibilityLabel="Close">
+        <PressableScale style={styles.iconBtn} scale={0.9} onPress={() => router.back()} accessibilityLabel="Close">
           <X size={24} color={theme.colors.text} />
-        </Pressable>
+        </PressableScale>
       </View>
 
       {stage === 'done' ? (
@@ -51,9 +52,9 @@ export default function PremiumScreen() {
           </Animated.View>
           <Text style={styles.doneTitle}>You are Premium</Text>
           <Text style={styles.doneSub}>House ads are gone, downloads are unlocked, crossfade runs to 6s.</Text>
-          <Pressable style={styles.cta} onPress={() => router.back()}>
+          <PressableScale style={styles.cta} onPress={() => router.back()}>
             <Text style={styles.ctaText}>Start listening</Text>
-          </Pressable>
+          </PressableScale>
         </View>
       ) : stage === 'checkout' ? (
         <ScrollView contentContainerStyle={styles.checkout}>
@@ -67,12 +68,12 @@ export default function PremiumScreen() {
             <Text style={styles.fieldLabel}>Name</Text>
             <Text style={styles.fieldValue}>Guest Listener</Text>
           </View>
-          <Pressable style={styles.cta} onPress={subscribe}>
+          <PressableScale style={styles.cta} onPress={subscribe}>
             <Text style={styles.ctaText}>Subscribe (demo)</Text>
-          </Pressable>
-          <Pressable style={styles.backLink} onPress={() => setStage('pitch')}>
+          </PressableScale>
+          <PressableScale style={styles.backLink} onPress={() => setStage('pitch')}>
             <Text style={styles.backLinkText}>Back to plans</Text>
-          </Pressable>
+          </PressableScale>
         </ScrollView>
       ) : (
         <ScrollView contentContainerStyle={{ paddingBottom: 40 }}>
@@ -85,25 +86,29 @@ export default function PremiumScreen() {
               <Text style={styles.tdHead}>Free</Text>
               <Text style={[styles.tdHead, { color: theme.colors.accent }]}>Premium</Text>
             </View>
-            {ROWS.map((r) => (
-              <View key={r.label} style={styles.tr}>
-                <Text style={[styles.td, styles.tdLabel]}>{r.label}</Text>
-                <Text style={styles.td}>{r.free}</Text>
-                <Text style={[styles.td, { color: theme.colors.text, fontWeight: theme.fontWeight.semibold }]}>{r.premium}</Text>
-              </View>
+            {ROWS.map((r, i) => (
+              <StaggerItem key={r.label} index={i}>
+                <View style={styles.tr}>
+                  <Text style={[styles.td, styles.tdLabel]}>{r.label}</Text>
+                  <Text style={styles.td}>{r.free}</Text>
+                  <Text style={[styles.td, { color: theme.colors.text, fontWeight: theme.fontWeight.semibold }]}>{r.premium}</Text>
+                </View>
+              </StaggerItem>
             ))}
           </View>
 
           <View style={styles.plans}>
-            <Pressable
+            <PressableScale
+              outerStyle={{ flex: 1 }}
               style={[styles.planCard, tier === 'monthly' && styles.planCardOn]}
               onPress={() => setTier('monthly')}
             >
               <Text style={styles.planName}>Monthly</Text>
               <Text style={styles.planPrice}>$4.99<Text style={styles.planPer}> / month</Text></Text>
               <Text style={styles.planNote}>Demo pricing</Text>
-            </Pressable>
-            <Pressable
+            </PressableScale>
+            <PressableScale
+              outerStyle={{ flex: 1 }}
               style={[styles.planCard, tier === 'yearly' && styles.planCardOn]}
               onPress={() => setTier('yearly')}
             >
@@ -113,24 +118,24 @@ export default function PremiumScreen() {
               <Text style={styles.planName}>Yearly</Text>
               <Text style={styles.planPrice}>$49.99<Text style={styles.planPer}> / year</Text></Text>
               <Text style={styles.planNote}>Two months free vs monthly</Text>
-            </Pressable>
+            </PressableScale>
           </View>
 
           {plan === 'premium' ? (
             <Text style={styles.already}>You are already Premium — enjoy.</Text>
           ) : (
-            <Pressable style={styles.cta} onPress={() => setStage('checkout')}>
+            <PressableScale style={styles.cta} onPress={() => setStage('checkout')}>
               <Text style={styles.ctaText}>Continue</Text>
-            </Pressable>
+            </PressableScale>
           )}
-          <Pressable
+          <PressableScale
             style={styles.restore}
             onPress={() =>
               showToast(plan === 'premium' ? 'Premium is active on this device' : 'No purchase found (demo)')
             }
           >
             <Text style={styles.restoreText}>Restore purchase</Text>
-          </Pressable>
+          </PressableScale>
         </ScrollView>
       )}
     </SafeAreaView>

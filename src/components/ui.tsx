@@ -39,6 +39,7 @@ export function PressableScale({
   hitSlop,
   onLongPress,
   delayLongPress,
+  disabled,
 }: {
   onPress: () => void;
   style?: StyleProp<ViewStyle>;
@@ -52,17 +53,19 @@ export function PressableScale({
   hitSlop?: number;
   onLongPress?: () => void;
   delayLongPress?: number;
+  disabled?: boolean;
 }) {
   const reduced = useReducedMotion();
   const press = usePressScale(scale);
   return (
-    <Animated.View style={[reduced ? undefined : press.style, outerStyle]} layout={layout ? LinearTransition.springify() : undefined}>
+    <Animated.View style={[reduced || disabled ? undefined : press.style, outerStyle]} layout={layout ? LinearTransition.springify() : undefined}>
       <Pressable
         onPress={onPress}
         onLongPress={onLongPress}
         delayLongPress={delayLongPress}
-        onPressIn={reduced ? undefined : press.onPressIn}
-        onPressOut={reduced ? undefined : press.onPressOut}
+        disabled={disabled}
+        onPressIn={reduced || disabled ? undefined : press.onPressIn}
+        onPressOut={reduced || disabled ? undefined : press.onPressOut}
         accessibilityLabel={accessibilityLabel}
         accessibilityRole={accessibilityRole}
         accessibilityState={accessibilityState}
@@ -146,9 +149,9 @@ export function EmptyState({
       <Text style={styles.emptyTitle}>{title}</Text>
       <Text style={styles.emptyBody}>{body}</Text>
       {ctaLabel && onCta ? (
-        <Pressable onPress={onCta} style={styles.emptyCta} accessibilityRole="button">
+        <PressableScale onPress={onCta} style={styles.emptyCta} accessibilityRole="button">
           <Text style={styles.emptyCtaText}>{ctaLabel}</Text>
-        </Pressable>
+        </PressableScale>
       ) : null}
     </View>
   );

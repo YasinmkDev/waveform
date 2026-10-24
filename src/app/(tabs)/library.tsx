@@ -1,11 +1,12 @@
 import { useMemo, useState } from 'react';
-import { Alert, Modal, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
+import { Alert, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
 import { Image } from 'expo-image';
 import { router } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { ArrowDownAZ, LayoutGrid, List, MoreHorizontal, Pin, Plus, Search, X } from 'lucide-react-native';
 
 import { ArtistCard, SquareCard } from '../../components/Cards';
+import { SheetRow, SheetShell } from '../../components/sheets';
 import { Chip, EmptyState, PressableScale, StaggerItem } from '../../components/ui';
 import { ALBUMS, PLAYLISTS, art, getArtist } from '../../data/catalog';
 import { useHistoryStore } from '../../store/history';
@@ -255,51 +256,42 @@ export default function LibraryScreen() {
         )}
       </ScrollView>
 
-      <Modal visible={!!menuEntry} transparent animationType="fade" onRequestClose={() => setMenuKey(null)}>
-        <Pressable style={styles.backdrop} onPress={() => setMenuKey(null)}>
-          {menuEntry ? (
-            <View style={styles.menu}>
-              <Text style={styles.menuTitle} numberOfLines={1}>
-                {menuEntry.title}
-              </Text>
-              {menuEntry.kind !== 'liked' ? (
-                <Pressable
-                  style={styles.menuRow}
-                  onPress={() => {
-                    togglePin(menuEntry.key);
-                    setMenuKey(null);
-                  }}
-                >
-                  <Pin size={20} color={theme.colors.text} />
-                  <Text style={styles.menuText}>
-                    {pinnedKeys.includes(menuEntry.key) ? 'Unpin' : 'Pin to top'}
-                  </Text>
-                </Pressable>
-              ) : null}
-              {menuEntry.kind === 'user' ? (
-                <Pressable
-                  style={styles.menuRow}
-                  onPress={() => {
-                    const id = menuEntry.key.replace('user:', '');
-                    const title = menuEntry.title;
-                    setMenuKey(null);
-                    Alert.alert('Delete playlist?', `"${title}" will be removed from your library.`, [
-                      { text: 'Cancel', style: 'cancel' },
-                      { text: 'Delete', style: 'destructive', onPress: () => deletePlaylist(id) },
-                    ]);
-                  }}
-                >
-                  <X size={20} color={theme.colors.danger} />
-                  <Text style={[styles.menuText, { color: theme.colors.danger }]}>Delete playlist</Text>
-                </Pressable>
-              ) : null}
-              <Pressable style={styles.menuRow} onPress={() => setMenuKey(null)}>
-                <Text style={styles.menuText}>Cancel</Text>
-              </Pressable>
-            </View>
-          ) : null}
-        </Pressable>
-      </Modal>
+      <SheetShell visible={!!menuEntry} onClose={() => setMenuKey(null)}>
+        {menuEntry ? (
+          <>
+            <Text style={styles.menuTitle} numberOfLines={1}>
+              {menuEntry.title}
+            </Text>
+            {menuEntry.kind !== 'liked' ? (
+              <SheetRow
+                icon={<Pin size={20} color={theme.colors.text} />}
+                label={pinnedKeys.includes(menuEntry.key) ? 'Unpin' : 'Pin to top'}
+                onPress={() => {
+                  togglePin(menuEntry.key);
+                  setMenuKey(null);
+                }}
+              />
+            ) : null}
+            {menuEntry.kind === 'user' ? (
+              <SheetRow
+                icon={<X size={20} color={theme.colors.danger} />}
+                label="Delete playlist"
+                danger
+                onPress={() => {
+                  const id = menuEntry.key.replace('user:', '');
+                  const title = menuEntry.title;
+                  setMenuKey(null);
+                  Alert.alert('Delete playlist?', `"${title}" will be removed from your library.`, [
+                    { text: 'Cancel', style: 'cancel' },
+                    { text: 'Delete', style: 'destructive', onPress: () => deletePlaylist(id) },
+                  ]);
+                }}
+              />
+            ) : null}
+            <SheetRow icon={<X size={20} color={theme.colors.textSecondary} />} label="Cancel" onPress={() => setMenuKey(null)} />
+          </>
+        ) : null}
+      </SheetShell>
     </SafeAreaView>
   );
 }
@@ -352,16 +344,5 @@ const styles = StyleSheet.create({
   rowArt: { width: 52, height: 52, borderRadius: theme.radii.sm },
   rowTitle: { color: theme.colors.text, fontSize: theme.fontSize.body, fontWeight: theme.fontWeight.medium },
   rowSub: { color: theme.colors.textSecondary, fontSize: theme.fontSize.caption, marginTop: 2 },
-  backdrop: { flex: 1, backgroundColor: 'rgba(0,0,0,0.6)', justifyContent: 'flex-end' },
-  menu: {
-    backgroundColor: theme.colors.surfaceAlt,
-    borderTopLeftRadius: theme.radii.xl,
-    borderTopRightRadius: theme.radii.xl,
-    padding: theme.spacing.lg,
-    paddingBottom: theme.spacing.xxl,
-    gap: theme.spacing.xs,
-  },
   menuTitle: { color: theme.colors.text, fontSize: theme.fontSize.body, fontWeight: theme.fontWeight.bold, paddingVertical: theme.spacing.sm },
-  menuRow: { flexDirection: 'row', alignItems: 'center', gap: theme.spacing.md, paddingVertical: 12 },
-  menuText: { color: theme.colors.text, fontSize: theme.fontSize.body },
 });

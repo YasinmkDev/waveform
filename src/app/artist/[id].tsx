@@ -1,4 +1,4 @@
-import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { ScrollView, StyleSheet, Text, View } from 'react-native';
 import { Image } from 'expo-image';
 import { router, useLocalSearchParams } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -7,7 +7,7 @@ import { ArrowLeft, Shuffle } from 'lucide-react-native';
 import { ArtistCard, SquareCard } from '../../components/Cards';
 import { PlayDisc } from '../../components/PlayDisc';
 import { TrackRow, formatDuration } from '../../components/TrackRow';
-import { EmptyState } from '../../components/ui';
+import { EmptyState, PressableScale, StaggerItem } from '../../components/ui';
 import { ARTISTS, art, artistAlbums, artistTracks, getArtist } from '../../data/catalog';
 import { formatCount } from '../../lib/stats';
 import { useLibraryStore } from '../../store/library';
@@ -60,9 +60,9 @@ export default function ArtistScreen() {
   return (
     <ScrollView style={styles.root} contentContainerStyle={{ paddingBottom: 140 }}>
       <View style={[styles.hero, { paddingTop: insets.top + theme.spacing.sm }]}>
-        <Pressable style={styles.iconBtn} onPress={() => router.back()} accessibilityLabel="Back">
+        <PressableScale style={styles.iconBtn} onPress={() => router.back()} accessibilityLabel="Back">
           <ArrowLeft size={24} color={theme.colors.text} />
-        </Pressable>
+        </PressableScale>
         <Image source={art(artist.image)} style={styles.heroImg} contentFit="cover" />
         <Text style={styles.name}>{artist.name}</Text>
         <Text style={styles.listeners}>{formatCount(artist.monthlyListeners)} monthly listeners</Text>
@@ -70,7 +70,7 @@ export default function ArtistScreen() {
           {artist.bio}
         </Text>
         <View style={styles.actionRow}>
-          <Pressable
+          <PressableScale
             onPress={() => toggleFollow(artist.id)}
             style={[styles.followBtn, following && styles.followBtnOn]}
             accessibilityRole="button"
@@ -78,36 +78,37 @@ export default function ArtistScreen() {
             <Text style={[styles.followText, following && { color: theme.colors.accent }]}>
               {following ? 'Following' : 'Follow'}
             </Text>
-          </Pressable>
-          <Pressable style={styles.iconBtn} onPress={() => onPlay(true)} accessibilityLabel="Shuffle play">
+          </PressableScale>
+          <PressableScale style={styles.iconBtn} onPress={() => onPlay(true)} accessibilityLabel="Shuffle play">
             <Shuffle size={22} color={theme.colors.textSecondary} />
-          </Pressable>
+          </PressableScale>
           <PlayDisc isPlaying={isThisArtist && isPlaying} onPress={() => onPlay(false)} />
         </View>
       </View>
 
       <Text style={styles.section}>Popular</Text>
       {tracks.map((t, i) => (
-        <View key={t.id}>
+        <StaggerItem key={t.id} index={i} layout>
           <TrackRow track={t} index={i} showIndex contextTracks={trackIds} contextLabel={artist.name} />
           <Text style={styles.playCount}>
             {formatCount(t.playCount)} plays · {formatDuration(t.duration)}
           </Text>
-        </View>
+        </StaggerItem>
       ))}
 
       {albums.length ? (
         <>
           <Text style={styles.section}>Discography</Text>
           <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.rail}>
-            {albums.map((a) => (
-              <SquareCard
-                key={a.id}
-                coverKey={a.cover}
-                title={a.title}
-                caption={`${a.year} · Album`}
-                onPress={() => router.push(`/album/${a.id}`)}
-              />
+            {albums.map((a, i) => (
+              <StaggerItem key={a.id} index={i}>
+                <SquareCard
+                  coverKey={a.cover}
+                  title={a.title}
+                  caption={`${a.year} · Album`}
+                  onPress={() => router.push(`/album/${a.id}`)}
+                />
+              </StaggerItem>
             ))}
           </ScrollView>
         </>
@@ -117,8 +118,10 @@ export default function ArtistScreen() {
         <>
           <Text style={styles.section}>Fans also like</Text>
           <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.rail}>
-            {alsoLike.map((a) => (
-              <ArtistCard key={a.id} imageKey={a.image} name={a.name} onPress={() => router.push(`/artist/${a.id}`)} />
+            {alsoLike.map((a, i) => (
+              <StaggerItem key={a.id} index={i}>
+                <ArtistCard imageKey={a.image} name={a.name} onPress={() => router.push(`/artist/${a.id}`)} />
+              </StaggerItem>
             ))}
           </ScrollView>
         </>

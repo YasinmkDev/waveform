@@ -1,10 +1,11 @@
 import { useMemo } from 'react';
-import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { ScrollView, StyleSheet, Text, View } from 'react-native';
 import { Image } from 'expo-image';
 import { router } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { ArrowLeft, Bell, Crown, Flame, Settings, Share2, Snowflake } from 'lucide-react-native';
 
+import { PressableScale, StaggerItem } from '../components/ui';
 import { art, coverOfTrack, getArtist, getGenre, getTrack } from '../data/catalog';
 import {
   countedPlays,
@@ -91,13 +92,13 @@ export default function ProfileScreen() {
   return (
     <ScrollView style={styles.root} contentContainerStyle={{ paddingBottom: 140 }}>
       <View style={[styles.header, { paddingTop: insets.top + theme.spacing.sm }]}>
-        <Pressable style={styles.iconBtn} onPress={() => router.back()} accessibilityLabel="Back">
+        <PressableScale style={styles.iconBtn} onPress={() => router.back()} accessibilityLabel="Back">
           <ArrowLeft size={24} color={theme.colors.text} />
-        </Pressable>
+        </PressableScale>
         <Text style={styles.headerTitle}>Profile</Text>
-        <Pressable style={styles.iconBtn} onPress={() => router.push('/settings')} accessibilityLabel="Settings">
+        <PressableScale style={styles.iconBtn} onPress={() => router.push('/settings')} accessibilityLabel="Settings">
           <Settings size={22} color={theme.colors.text} />
-        </Pressable>
+        </PressableScale>
       </View>
 
       <View style={styles.identity}>
@@ -105,7 +106,7 @@ export default function ProfileScreen() {
           <Text style={styles.avatarText}>G</Text>
         </View>
         <Text style={styles.name}>Guest Listener</Text>
-        <Pressable
+        <PressableScale
           style={[styles.planPill, plan === 'premium' && styles.planPillOn]}
           onPress={() => router.push('/premium')}
         >
@@ -113,26 +114,26 @@ export default function ProfileScreen() {
           <Text style={[styles.planText, plan === 'premium' && { color: theme.colors.accent }]}>
             {plan === 'premium' ? 'Premium' : 'Free plan · see Premium'}
           </Text>
-        </Pressable>
+        </PressableScale>
       </View>
 
       {/* Stats */}
       <Text style={styles.section}>Your stats</Text>
       {hasData ? (
         <View style={styles.statsCard}>
-          <View style={styles.statCell}>
+          <StaggerItem index={0} style={styles.statCell}>
             <Text style={styles.statNum}>{formatMinutes(stats.minutes)}</Text>
             <Text style={styles.statLabel}>listened</Text>
-          </View>
-          <View style={styles.statCell}>
+          </StaggerItem>
+          <StaggerItem index={1} style={styles.statCell}>
             <Text style={styles.statNum}>{stats.songs}</Text>
             <Text style={styles.statLabel}>songs played</Text>
-          </View>
-          <View style={styles.statCell}>
+          </StaggerItem>
+          <StaggerItem index={2} style={styles.statCell}>
             <Text style={styles.statNum}>{stats.plays}</Text>
             <Text style={styles.statLabel}>full plays</Text>
-          </View>
-          <View style={styles.statRow}>
+          </StaggerItem>
+          <StaggerItem index={3} style={styles.statRow}>
             <Flame size={17} color={theme.colors.warning} />
             <Text style={styles.statInline}>
               {stats.streak}-day listening streak
@@ -141,16 +142,20 @@ export default function ProfileScreen() {
             <Text style={styles.statInlineDim}>
               {streakFreezes} {streakFreezes === 1 ? 'freeze' : 'freezes'} ready
             </Text>
-          </View>
+          </StaggerItem>
           {stats.topArtist ? (
-            <Text style={styles.statLine}>
-              Top artist · <Text style={styles.statStrong}>{stats.topArtist.name}</Text>
-            </Text>
+            <StaggerItem index={4} style={{ width: '100%' }}>
+              <Text style={styles.statLine}>
+                Top artist · <Text style={styles.statStrong}>{stats.topArtist.name}</Text>
+              </Text>
+            </StaggerItem>
           ) : null}
           {stats.topGenre ? (
-            <Text style={styles.statLine}>
-              Top genre · <Text style={styles.statStrong}>{stats.topGenre.name}</Text>
-            </Text>
+            <StaggerItem index={5} style={{ width: '100%' }}>
+              <Text style={styles.statLine}>
+                Top genre · <Text style={styles.statStrong}>{stats.topGenre.name}</Text>
+              </Text>
+            </StaggerItem>
           ) : null}
         </View>
       ) : (
@@ -164,7 +169,7 @@ export default function ProfileScreen() {
         <View style={styles.notifCard}>
           <Bell size={20} color={theme.colors.accent} />
           <Text style={styles.notifText}>Get your Weekly Mix the moment it drops, every Monday at 9.</Text>
-          <Pressable
+          <PressableScale
             style={styles.notifBtn}
             onPress={() => {
               setNotifAsked();
@@ -173,10 +178,10 @@ export default function ProfileScreen() {
             }}
           >
             <Text style={styles.notifBtnText}>Remind me</Text>
-          </Pressable>
-          <Pressable onPress={setNotifAsked} hitSlop={8}>
+          </PressableScale>
+          <PressableScale onPress={setNotifAsked} hitSlop={8}>
             <Text style={styles.notifSkip}>Not now</Text>
-          </Pressable>
+          </PressableScale>
         </View>
       ) : null}
 
@@ -189,35 +194,37 @@ export default function ProfileScreen() {
         {stats.topArtist ? <Text style={styles.monthFact}>Top artist — {stats.topArtist.name}</Text> : null}
         {stats.topTrack ? <Text style={styles.monthFact}>On repeat — “{stats.topTrack.title}”</Text> : null}
         {hasData ? <Text style={styles.monthFact}>{stats.streak}-day streak and counting</Text> : null}
-        <Pressable
+        <PressableScale
           style={styles.shareBtn}
           onPress={() => showToast(hasData ? 'Card ready — screenshot to share it anywhere' : 'Listen first, then this card tells your story')}
         >
           <Share2 size={16} color={theme.colors.onAccent} />
           <Text style={styles.shareText}>Share your month</Text>
-        </Pressable>
+        </PressableScale>
       </View>
 
       {/* History */}
       {recent.length ? (
         <>
           <Text style={styles.section}>Recently played</Text>
-          {recent.map(({ trackId, at }) => {
+          {recent.map(({ trackId, at }, i) => {
             const t = getTrack(trackId);
             if (!t) return null;
             return (
-              <Pressable key={trackId} style={styles.histRow} onPress={() => playContext([trackId], 0, 'Recently played')}>
-                <Image source={art(coverOfTrack(t))} style={styles.histArt} contentFit="cover" />
-                <View style={{ flex: 1, minWidth: 0 }}>
-                  <Text style={styles.histTitle} numberOfLines={1}>
-                    {t.title}
-                  </Text>
-                  <Text style={styles.histArtist} numberOfLines={1}>
-                    {getArtist(t.artistId)?.name}
-                  </Text>
-                </View>
-                <Text style={styles.histWhen}>{timeAgo(at)}</Text>
-              </Pressable>
+              <StaggerItem key={trackId} index={i} layout>
+                <PressableScale style={styles.histRow} onPress={() => playContext([trackId], 0, 'Recently played')}>
+                  <Image source={art(coverOfTrack(t))} style={styles.histArt} contentFit="cover" />
+                  <View style={{ flex: 1, minWidth: 0 }}>
+                    <Text style={styles.histTitle} numberOfLines={1}>
+                      {t.title}
+                    </Text>
+                    <Text style={styles.histArtist} numberOfLines={1}>
+                      {getArtist(t.artistId)?.name}
+                    </Text>
+                  </View>
+                  <Text style={styles.histWhen}>{timeAgo(at)}</Text>
+                </PressableScale>
+              </StaggerItem>
             );
           })}
         </>
