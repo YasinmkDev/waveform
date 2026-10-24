@@ -35,7 +35,6 @@ interface PlayerState {
   seek: (seconds: number) => void;
   toggleShuffle: () => void;
   cycleRepeat: () => void;
-  addToQueue: (trackId: string) => void;
   /** Insert directly after the current track — the TrackMenu "Play next". */
   playNext: (trackId: string) => void;
   removeFromQueue: (i: number) => void;
@@ -232,19 +231,6 @@ export const usePlayerStore = create<PlayerState>()(
         const order: RepeatMode[] = ['off', 'all', 'one'];
         const nextMode = order[(order.indexOf(get().repeat) + 1) % order.length];
         set({ repeat: nextMode });
-      },
-
-      addToQueue: (trackId) => {
-        const s = get();
-        if (!s.queue.length) {
-          get().playContext([trackId], 0, 'Queue');
-          return;
-        }
-        const queue = [...s.queue];
-        queue.splice(s.index + 1, 0, trackId);
-        const baseQueue = s.baseQueue.includes(trackId) ? s.baseQueue : [...s.baseQueue, trackId];
-        set({ queue, baseQueue });
-        useUiStore.getState().showToast('Added to queue');
       },
 
       playNext: (trackId) => {
