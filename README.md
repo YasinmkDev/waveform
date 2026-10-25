@@ -33,3 +33,49 @@ Foreground playback in Expo Go; background/lock-screen audio intentionally skipp
 ## Stack
 
 Expo Router · TypeScript strict · Zustand (persisted stores) · Reanimated 4 · FlashList · expo-audio · lucide icons. Gates on every commit: `tsc --noEmit`, ESLint, `expo-doctor` 21/21.
+
+## Screens
+
+Captured from the web build at mobile viewport 390×844, using only the app's sample catalog. The Player and Queue shots show a real track started from Home (Your Weekly Mix).
+
+![Taste onboarding](docs/screenshots/onboarding.png)
+Onboarding — pick the artists you love.
+
+![Home](docs/screenshots/home.png)
+Home — Good afternoon, Your Weekly Mix, and Made For You.
+
+![Search](docs/screenshots/search.png)
+Search — live grouped results and genre browse.
+
+![Your Library](docs/screenshots/library.png)
+Your Library — filters, sort, and pinned items.
+
+![Now Playing](docs/screenshots/player.png)
+Now Playing — track, transport controls, and scrubber.
+
+![Queue](docs/screenshots/queue.png)
+Queue — now playing and next in queue, reorderable.
+
+![Playlist](docs/screenshots/playlist.png)
+Playlist — Daily Mix 01 detail.
+
+![Album](docs/screenshots/album.png)
+Album — Neon Meridian by Nova Reina.
+
+![Artist](docs/screenshots/artist.png)
+Artist — Nova Reina detail.
+
+![Genre](docs/screenshots/genre.png)
+Genre — Synthwave browse.
+
+![Profile](docs/screenshots/profile.png)
+Profile — stats and listening history.
+
+![Settings](docs/screenshots/settings.png)
+Settings — app preferences.
+
+![Premium](docs/screenshots/premium.png)
+Premium — paywall and benefits.
+
+![Create playlist](docs/screenshots/create-playlist.png)
+Create playlist — name a new playlist.
